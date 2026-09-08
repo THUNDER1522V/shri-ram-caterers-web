@@ -1,17 +1,53 @@
-import { Container } from "@/components/common/container";
+import * as React from "react";
+import { Navbar } from "@/components/layout/navbar";
+import { HeroSection } from "@/components/sections/hero-section";
+import { TrustStripSection } from "@/components/sections/trust-strip-section";
+import { WhyUsSection } from "@/components/sections/why-us-section";
+import { ServicesSection } from "@/components/sections/services-section";
+import { SignatureFoodSection } from "@/components/sections/signature-food-section";
+import { GallerySection } from "@/components/sections/gallery-section";
+import { TestimonialsSection } from "@/components/sections/testimonials-section";
+import { FAQSection } from "@/components/sections/faq-section";
+import { ContactCTASection } from "@/components/sections/contact-cta-section";
+import { Footer } from "@/components/layout/footer";
 
 export default function HomePage() {
   return (
-    <main id="main-content" className="flex min-h-screen flex-col">
-      {/* Foundation shell: Prepared for section-by-section implementation per homepage_blueprints */}
-      <Container className="flex flex-1 flex-col items-center justify-center py-24 text-center">
-        <h1 className="font-heading text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
-          Shri Ram Caterers
-        </h1>
-        <p className="mt-4 font-body text-base text-muted-foreground md:text-lg">
-          Production foundation ready.
-        </p>
-      </Container>
-    </main>
+    <div className="flex min-h-screen flex-col">
+      {/* 1. Navbar */}
+      <Navbar />
+
+      <main id="main-content" className="flex-1">
+        {/* 2. Hero */}
+        <HeroSection />
+
+        {/* 3. Trust Strip */}
+        <TrustStripSection />
+
+        {/* 4. Why Choose Shri Ram Caterers */}
+        <WhyUsSection />
+
+        {/* 5. Catering Services */}
+        <ServicesSection />
+
+        {/* 6. Signature Food Showcase */}
+        <SignatureFoodSection />
+
+        {/* 7. Event Gallery */}
+        <GallerySection />
+
+        {/* 8. Testimonials */}
+        <TestimonialsSection />
+
+        {/* 9. FAQ */}
+        <FAQSection />
+
+        {/* 10. Contact CTA */}
+        <ContactCTASection />
+      </main>
+
+      {/* 11. Footer */}
+      <Footer />
+    </div>
   );
 }
