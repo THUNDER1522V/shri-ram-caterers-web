@@ -1,0 +1,109 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Brand Luxury Design Tokens (Light Theme Only - Dark Mode Explicitly Disabled) */
+    --background: 40 25% 97%;          /* #FAF8F5 - Warm Ivory */
+    --foreground: 240 10% 10%;         /* #18181B - Charcoal Primary */
+
+    --card: 0 0% 100%;                 /* #FFFFFF - Pure Card Surface */
+    --card-foreground: 240 10% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 10%;
+
+    --primary: 35 38% 64%;             /* #C5A880 - Primary Luxury Gold */
+    --primary-foreground: 40 25% 98%;
+
+    --secondary: 37 40% 44%;           /* #9C7A44 - Secondary Deep Gold */
+    --secondary-foreground: 40 25% 98%;
+
+    --muted: 36 22% 93%;               /* #F4EFE6 - Warm Muted Surface */
+    --muted-foreground: 240 4% 46%;    /* #71717A - Charcoal Muted Text */
+
+    --accent: 35 38% 64%;              /* #C5A880 - Accent Gold */
+    --accent-foreground: 240 10% 10%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 34 18% 87%;              /* #E5DFD7 - Warm Border Line */
+    --input: 34 18% 87%;
+    --ring: 35 38% 64%;                /* #C5A880 - Focus Ring */
+
+    --radius: 0.875rem;                /* 14px standard radius */
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: light;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+    min-height: 100vh;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: #EADCC8;
+    color: #18181B;
+  }
+
+  /* Accessible focus indicators */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  /* Editorial Typography Utilities */
+  .font-heading {
+    font-family: var(--font-heading), "Bodoni Moda", serif;
+  }
+
+  .font-body {
+    font-family: var(--font-body), "Inter", sans-serif;
+  }
+
+  /* Luxury Whitespace Section Defaults */
+  .section-padding {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+
+  @media (min-width: 768px) {
+    .section-padding {
+      padding-top: 5rem;
+      padding-bottom: 5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .section-padding {
+      padding-top: 7.5rem;
+      padding-bottom: 7.5rem;
+    }
+  }
+}
+
+/* Reduced motion preference respect */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
