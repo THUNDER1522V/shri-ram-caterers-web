@@ -8,35 +8,49 @@ import { Container } from "@/components/common/container";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Phone, MessageCircle } from "lucide-react";
 import { useScroll } from "@/hooks/use-scroll";
+import { useLenis } from "lenis/react";
 import { cn } from "@/lib/utils";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = React.useState(false);
-  const isScrolled = useScroll(20);
+  const isScrolled = useScroll(40);
+  const lenis = useLenis();
 
   const toggleMenu = () => setIsOpen((prev) => !prev);
   const closeMenu = () => setIsOpen(false);
 
+  const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith("#")) {
+      e.preventDefault();
+      lenis?.scrollTo(href, { offset: -80 });
+      closeMenu();
+    }
+  };
+
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full border-b transition-colors duration-200",
+        "sticky top-0 z-50 w-full border-b transition-all duration-300",
         isScrolled
-          ? "border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
-          : "border-transparent bg-background"
+          ? "border-[#D4A84B] bg-[#0B0B0B]/85 backdrop-blur-md"
+          : "border-transparent bg-[#0B0B0B]"
       )}
+      style={{
+        transitionProperty: "background-color, backdrop-filter, border-color",
+      }}
     >
       <Container>
         <div className="flex h-20 items-center justify-between">
           {/* Brand Identity */}
           <Link
             href="/"
+            aria-label="Shri Ram Caterers Homepage"
             className="flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             onClick={closeMenu}
           >
-            <span className="font-heading text-xl font-bold tracking-tight text-foreground md:text-2xl">
-              {siteConfig.name}
-            </span>
+            <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-gold/20 text-gold font-heading font-bold">
+              SRC
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
@@ -48,7 +62,8 @@ export function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="font-body text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                onClick={(e) => handleAnchorClick(e, item.href)}
+                className="font-body text-sm font-medium text-ivory/80 transition-colors hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 {item.title}
               </Link>
@@ -67,7 +82,7 @@ export function Navbar() {
                 <span>Call Us</span>
               </a>
             </Button>
-            <Button asChild variant="whatsapp" size="sm">
+            <Button asChild variant="outline" size="sm" className="border-gold text-gold hover:bg-gold/10">
               <a
                 href={siteConfig.links.whatsapp}
                 target="_blank"
@@ -108,7 +123,7 @@ export function Navbar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={closeMenu}
+                  onClick={(e) => handleAnchorClick(e, item.href)}
                   className="font-body text-base font-medium text-foreground transition-colors hover:text-primary"
                 >
                   {item.title}
@@ -126,7 +141,7 @@ export function Navbar() {
                   <span>Call Us</span>
                 </a>
               </Button>
-              <Button asChild variant="whatsapp" className="w-full justify-center">
+              <Button asChild variant="outline" className="w-full justify-center border-gold text-gold hover:bg-gold/10">
                 <a
                   href={siteConfig.links.whatsapp}
                   target="_blank"

@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  // Dark mode is explicitly disabled per brand requirements (strictly luxury light theme)
+  // Dark mode is default
   darkMode: "class",
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -54,38 +54,18 @@ const config: Config = {
         },
         // Brand-specific color tokens
         gold: {
-          50: "#FAF6EF",
-          100: "#F3EBDC",
-          200: "#E6D6BA",
-          300: "#D6BD95",
-          400: "#C5A880", // Primary Gold
-          500: "#B89358",
-          600: "#9C7A44", // Secondary Gold
-          700: "#7C5F33",
-          800: "#5D4626",
-          900: "#3F2F1B",
-          DEFAULT: "#C5A880",
+          DEFAULT: "#D4A84B",
+          champagne: "#E8D6A8",
         },
         ivory: {
-          50: "#FFFFFF",
-          100: "#FDFBF7",
-          200: "#FAF8F5", // Background Ivory
-          300: "#F4EFE6", // Secondary Ivory
-          400: "#EFE8DC",
-          DEFAULT: "#FAF8F5",
+          DEFAULT: "#F5EFE0",
+        },
+        red: {
+          DEFAULT: "#7A1118", // brand-red
+          wine: "#4A0A10",
         },
         charcoal: {
-          50: "#F5F5F6",
-          100: "#E5E5E8",
-          200: "#CBCBD0",
-          300: "#A2A2AC",
-          400: "#71717A", // Text Secondary
-          500: "#52525B",
-          600: "#3F3F46",
-          700: "#27272A",
-          800: "#1E1E21",
-          900: "#18181B", // Text Primary
-          DEFAULT: "#18181B",
+          DEFAULT: "#0B0B0B", // bg-black
         },
       },
       fontFamily: {
@@ -124,6 +104,14 @@ const config: Config = {
         "400": "400ms",
         "600": "600ms",
         "800": "800ms",
+      },
+      keyframes: {
+        sheen: {
+          "100%": { transform: "translateX(100%)" },
+        },
+      },
+      animation: {
+        sheen: "sheen 2s infinite",
       },
     },
   },

@@ -30,7 +30,7 @@ export default function HomePage() {
         {/* 5. Catering Services */}
         <ServicesSection />
 
-        {/* 6. Signature Food Showcase */}
+        {/* 6. Signature Food & Royal Menus */}
         <SignatureFoodSection />
 
         {/* 7. Event Gallery */}

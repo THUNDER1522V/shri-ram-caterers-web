@@ -3,20 +3,20 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-btn font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:translate-y-0",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-btn font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] relative overflow-hidden",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground hover:bg-gold-600 hover:-translate-y-0.5 shadow-elevation-soft",
+          "bg-gold text-[#0B0B0B] hover:bg-[#B89358] hover:-translate-y-0.5 shadow-elevation-soft before:absolute before:inset-0 before:-translate-x-full hover:before:animate-sheen before:bg-gradient-to-r before:from-transparent before:via-white/30 before:to-transparent",
         secondary:
-          "bg-muted text-foreground hover:bg-ivory-300 hover:-translate-y-0.5",
+          "bg-wine text-ivory hover:bg-[#5C0D14] hover:-translate-y-0.5",
         outline:
-          "border border-border bg-transparent text-foreground hover:bg-muted hover:border-gold-300",
-        ghost: "hover:bg-muted text-foreground",
-        link: "text-gold-600 underline-offset-4 hover:underline",
+          "border border-gold bg-transparent text-gold hover:bg-gold/10",
+        ghost: "hover:bg-wine text-ivory",
+        link: "text-gold underline-offset-4 hover:underline",
         whatsapp:
-          "bg-[#25D366] text-white hover:bg-[#1EBE5D] hover:-translate-y-0.5 shadow-elevation-soft",
+          "bg-[#25D366] text-white hover:bg-[#1EBE5D] hover:-translate-y-0.5 shadow-elevation-soft before:absolute before:inset-0 before:-translate-x-full hover:before:animate-sheen before:bg-gradient-to-r before:from-transparent before:via-white/30 before:to-transparent",
       },
       size: {
         default: "h-12 px-6 text-base", // 48px standard

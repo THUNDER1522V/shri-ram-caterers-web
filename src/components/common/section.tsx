@@ -11,18 +11,18 @@ export interface SectionProps extends React.HTMLAttributes<HTMLElement> {
  * Tablet: 80px (md:py-20)
  * Mobile: 64px (py-16)
  */
-export function Section({
-  as: Component = "section",
-  className,
-  children,
-  ...props
-}: SectionProps) {
+export const Section = React.forwardRef<HTMLElement, SectionProps>(function Section(
+  { as: Component = "section", className, children, ...props },
+  ref
+) {
   return (
     <Component
+      ref={ref}
       className={cn("py-16 md:py-20 lg:py-[120px]", className)}
       {...props}
     >
       {children}
     </Component>
   );
-}
+});
+Section.displayName = "Section";

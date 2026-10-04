@@ -1,24 +1,27 @@
 import { Bodoni_Moda, Inter } from "next/font/google";
 
 /**
- * Display/Heading Serif Font - Bodoni Moda
- * Selected for editorial luxury, high contrast, and timeless refinement.
+ * Heading Display Serif Font - Bodoni Moda
+ * Highly optimized: only weights and subsets used, display swap, preloaded, with size-adjusted fallbacks.
  */
 export const fontHeading = Bodoni_Moda({
   subsets: ["latin"],
   variable: "--font-heading",
   display: "swap",
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "600", "700"],
   style: ["normal", "italic"],
+  preload: true,
+  adjustFontFallback: true,
 });
 
 /**
- * Body/UI Sans Font - Inter
- * Selected for supreme legibility, neutral precision, and mobile clarity.
+ * Body/UI Sans Font - Inter (Variable Font)
+ * Uses native variable axes for maximum compression and zero font weight duplication.
  */
 export const fontBody = Inter({
   subsets: ["latin"],
   variable: "--font-body",
   display: "swap",
-  weight: ["300", "400", "500", "600", "700"],
+  preload: true,
+  adjustFontFallback: true,
 });

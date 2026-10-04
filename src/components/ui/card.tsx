@@ -1,19 +1,49 @@
+"use client";
+
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "rounded-card border border-border bg-card text-card-foreground shadow-elevation-soft transition-all duration-300 hover:shadow-elevation-hover",
-      className
-    )}
-    {...props}
-  />
-));
+>(({ className, children, ...props }, ref) => {
+  const [position, setPosition] = React.useState({ x: 0, y: 0 });
+  const [opacity, setOpacity] = React.useState(0);
+  const cardRef = React.useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    setPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  };
+
+  return (
+    <div
+      ref={(node) => {
+        if (typeof ref === 'function') ref(node);
+        else if (ref) ref.current = node;
+        cardRef.current = node;
+      }}
+      className={cn(
+        "relative rounded-card border border-border bg-card text-card-foreground shadow-elevation-soft transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_0_20px_rgba(212,168,75,0.4)] hover:border-gold/40 group overflow-hidden",
+        className
+      )}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setOpacity(1)}
+      onMouseLeave={() => setOpacity(0)}
+      {...props}
+    >
+      <div
+        className="pointer-events-none absolute -inset-px rounded-card opacity-0 transition-opacity duration-300 hidden md:block z-0"
+        style={{
+          opacity,
+          background: `radial-gradient(400px circle at ${position.x}px ${position.y}px, rgba(212, 168, 75, 0.1), transparent 40%)`,
+        }}
+      />
+      <div className="relative z-10 h-full flex flex-col">{children}</div>
+    </div>
+  );
+});
 Card.displayName = "Card";
 
 const CardHeader = React.forwardRef<

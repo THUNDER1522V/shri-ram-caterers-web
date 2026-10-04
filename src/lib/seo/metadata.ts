@@ -1,29 +1,44 @@
 import type { Metadata } from "next";
-import { siteConfig } from "@/config/site";
+import { siteConfig } from "@/config/siteConfig";
 import type { PageMetadataProps } from "@/types/seo";
 
 /**
  * Constructs production-grade metadata with OpenGraph and Twitter card fallbacks.
+ * Matches: "Wedding Caterers in [City] | Shri Ram Caterers" (55-60 chars)
  */
 export function constructMetadata({
   title,
   description = siteConfig.description,
   image = siteConfig.ogImage,
-  canonical,
+  canonical = "/",
   noIndex = false,
 }: PageMetadataProps = {}): Metadata {
-  const pageTitle = title ? `${title} | ${siteConfig.name}` : siteConfig.name;
-  const canonicalUrl = canonical ? `${siteConfig.url}${canonical}` : siteConfig.url;
+  const defaultPageTitle = `Wedding Caterers in ${siteConfig.city} | ${siteConfig.name}`;
+  const pageTitle = title ? `${title} | ${siteConfig.name}` : defaultPageTitle;
+  const canonicalUrl = canonical.startsWith("http")
+    ? canonical
+    : `${siteConfig.url}${canonical === "/" ? "" : canonical}`;
+
+  const imageUrl = image.startsWith("http") ? image : `${siteConfig.url}${image}`;
 
   return {
     title: {
-      default: siteConfig.name,
+      default: defaultPageTitle,
       template: `%s | ${siteConfig.name}`,
     },
     description,
     metadataBase: new URL(siteConfig.url),
     alternates: {
       canonical: canonicalUrl,
+    },
+    applicationName: siteConfig.name,
+    authors: [{ name: siteConfig.name, url: siteConfig.url }],
+    creator: siteConfig.name,
+    publisher: siteConfig.name,
+    formatDetection: {
+      telephone: true,
+      email: true,
+      address: true,
     },
     openGraph: {
       type: "website",
@@ -34,10 +49,10 @@ export function constructMetadata({
       siteName: siteConfig.name,
       images: [
         {
-          url: image.startsWith("http") ? image : `${siteConfig.url}${image}`,
+          url: imageUrl,
           width: 1200,
           height: 630,
-          alt: siteConfig.name,
+          alt: `${siteConfig.name} - Royal Indian Wedding Catering in ${siteConfig.city}`,
         },
       ],
     },
@@ -45,7 +60,8 @@ export function constructMetadata({
       card: "summary_large_image",
       title: pageTitle,
       description,
-      images: [image.startsWith("http") ? image : `${siteConfig.url}${image}`],
+      images: [imageUrl],
+      creator: "@shriramcaterers",
     },
     robots: {
       index: !noIndex,

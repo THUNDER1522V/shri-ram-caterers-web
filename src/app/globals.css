@@ -4,34 +4,34 @@
 
 @layer base {
   :root {
-    /* Brand Luxury Design Tokens (Light Theme Only - Dark Mode Explicitly Disabled) */
-    --background: 40 25% 97%;          /* #FAF8F5 - Warm Ivory */
-    --foreground: 240 10% 10%;         /* #18181B - Charcoal Primary */
+    /* Brand Luxury Design Tokens (Phase 1 Palette) */
+    --background: 0 0% 4.3%;           /* #0B0B0B - bg-black */
+    --foreground: 43 50% 93%;          /* #F5EFE0 - ivory (body text on dark) */
 
-    --card: 0 0% 100%;                 /* #FFFFFF - Pure Card Surface */
-    --card-foreground: 240 10% 10%;
+    --card: 355 75% 15%;               /* #4A0A10 - wine for depth */
+    --card-foreground: 43 50% 93%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 10%;
+    --popover: 0 0% 4.3%;
+    --popover-foreground: 43 50% 93%;
 
-    --primary: 35 38% 64%;             /* #C5A880 - Primary Luxury Gold */
-    --primary-foreground: 40 25% 98%;
+    --primary: 41 62% 56%;             /* #D4A84B - gold (buttons, borders, headings) */
+    --primary-foreground: 0 0% 4.3%;
 
-    --secondary: 37 40% 44%;           /* #9C7A44 - Secondary Deep Gold */
-    --secondary-foreground: 40 25% 98%;
+    --secondary: 356 75% 27%;          /* #7A1118 - brand-red */
+    --secondary-foreground: 43 50% 93%;
 
-    --muted: 36 22% 93%;               /* #F4EFE6 - Warm Muted Surface */
-    --muted-foreground: 240 4% 46%;    /* #71717A - Charcoal Muted Text */
+    --muted: 355 75% 15%;              /* #4A0A10 - wine */
+    --muted-foreground: 43 60% 78%;    /* darker ivory */
 
-    --accent: 35 38% 64%;              /* #C5A880 - Accent Gold */
-    --accent-foreground: 240 10% 10%;
+    --accent: 41 62% 56%;              /* #D4A84B - gold */
+    --accent-foreground: 0 0% 4.3%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 34 18% 87%;              /* #E5DFD7 - Warm Border Line */
-    --input: 34 18% 87%;
-    --ring: 35 38% 64%;                /* #C5A880 - Focus Ring */
+    --border: 41 62% 56%;              /* #D4A84B - gold */
+    --input: 355 75% 15%;              /* wine */
+    --ring: 41 62% 56%;                /* #D4A84B - gold */
 
     --radius: 0.875rem;                /* 14px standard radius */
   }
@@ -41,7 +41,7 @@
   }
 
   html {
-    color-scheme: light;
+    color-scheme: dark;
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -54,8 +54,8 @@
   }
 
   ::selection {
-    background-color: #EADCC8;
-    color: #18181B;
+    background-color: #C6A15B;
+    color: #0B0B0B;
   }
 
   /* Accessible focus indicators */

@@ -1,41 +1,60 @@
 import * as React from "react";
 import Link from "next/link";
 import { Container } from "@/components/common/container";
-import { siteConfig } from "@/config/site";
+import { siteConfig } from "@/config/siteConfig";
 import { navigationConfig } from "@/config/navigation";
 import { Phone, Mail, MapPin } from "lucide-react";
+import { ClientPetals } from "@/components/common/client-petals";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-border bg-ivory-300/60 pt-16 pb-12">
-      <Container>
+    <footer className="relative overflow-hidden border-t border-border bg-ivory-300/60 pt-16 pb-12">
+      {/* Ambient golden petals (background < petals z-[1] < content z-10) */}
+      <div className="absolute inset-0 z-[1] overflow-hidden pointer-events-none">
+        <ClientPetals petalCount={4} dustCount={2} sectionId="footer" />
+      </div>
+
+      <Container className="relative z-10">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-5">
           {/* Brand Col */}
           <div className="lg:col-span-2">
             <Link
               href="/"
-              className="font-heading text-2xl font-bold tracking-tight text-foreground"
+              aria-label={`${siteConfig.name} Home`}
+              className="font-heading text-2xl font-bold tracking-tight text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
             >
               {siteConfig.name}
             </Link>
             <p className="mt-4 max-w-sm font-body text-sm leading-relaxed text-muted-foreground">
-              [Luxury wedding catering and bespoke celebration dining experiences crafted with royal hospitality, authentic taste, and meticulous management.]
+              Luxury wedding catering and bespoke celebration dining experiences crafted with royal hospitality, authentic taste, and meticulous management.
             </p>
 
             <div className="mt-6 space-y-2 text-xs text-muted-foreground">
               <p className="flex items-center space-x-2">
                 <MapPin className="h-4 w-4 text-gold-600 shrink-0" aria-hidden="true" />
-                <span>[Main Office: New Delhi, India &bull; Serving Nationwide]</span>
+                <span>Main Office: {siteConfig.contact.address.city}, India &bull; Serving Nationwide</span>
               </p>
-              <p className="flex items-center space-x-2">
-                <Phone className="h-4 w-4 text-gold-600 shrink-0" aria-hidden="true" />
-                <span>{siteConfig.contact.phoneFormatted}</span>
+              <p>
+                <a
+                  href={siteConfig.links.phone}
+                  aria-label={`Call ${siteConfig.name} at ${siteConfig.contact.phoneFormatted}`}
+                  className="flex items-center space-x-2 hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                >
+                  <Phone className="h-4 w-4 text-gold-600 shrink-0" aria-hidden="true" />
+                  <span>{siteConfig.contact.phoneFormatted}</span>
+                </a>
               </p>
-              <p className="flex items-center space-x-2">
-                <Mail className="h-4 w-4 text-gold-600 shrink-0" aria-hidden="true" />
-                <span>{siteConfig.contact.email}</span>
+              <p>
+                <a
+                  href={siteConfig.links.email}
+                  aria-label={`Email ${siteConfig.name} at ${siteConfig.contact.email}`}
+                  className="flex items-center space-x-2 hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                >
+                  <Mail className="h-4 w-4 text-gold-600 shrink-0" aria-hidden="true" />
+                  <span>{siteConfig.contact.email}</span>
+                </a>
               </p>
             </div>
           </div>
@@ -53,7 +72,7 @@ export function Footer() {
                       href={item.href}
                       target={item.external ? "_blank" : undefined}
                       rel={item.external ? "noopener noreferrer" : undefined}
-                      className="font-body text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      className="font-body text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
                     >
                       {item.title}
                     </Link>
@@ -67,17 +86,17 @@ export function Footer() {
         {/* Sub-Footer */}
         <div className="mt-16 flex flex-col items-center justify-between border-t border-border pt-8 text-xs text-muted-foreground md:flex-row">
           <p>
-            &copy; {currentYear} {siteConfig.legalName}. [All Rights Reserved.]
+            &copy; {currentYear} {siteConfig.legalName}. All Rights Reserved.
           </p>
           <div className="mt-4 flex space-x-6 md:mt-0">
-            <Link href="#contact" className="hover:text-foreground transition-colors">
-              [Privacy Policy]
+            <Link href="#contact" className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold">
+              Privacy Policy
             </Link>
-            <Link href="#contact" className="hover:text-foreground transition-colors">
-              [Terms of Service]
+            <Link href="#contact" className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold">
+              Terms of Service
             </Link>
-            <Link href="#contact" className="hover:text-foreground transition-colors">
-              [Food Safety & Hygiene Standards]
+            <Link href="#contact" className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold">
+              Food Safety & Hygiene Standards
             </Link>
           </div>
         </div>
