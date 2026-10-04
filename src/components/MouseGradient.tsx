@@ -176,7 +176,9 @@ function createShader(gl: WebGLRenderingContext, type: number, source: string) {
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    console.error("Shader compile error:", gl.getShaderInfoLog(shader));
+    if (process.env.NODE_ENV !== "production") {
+      console.error("Shader compile error:", gl.getShaderInfoLog(shader));
+    }
     gl.deleteShader(shader);
     return null;
   }
@@ -196,7 +198,9 @@ function createProgram(gl: WebGLRenderingContext, vsSource: string, fsSource: st
   gl.linkProgram(program);
 
   if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    console.error("Program link error:", gl.getProgramInfoLog(program));
+    if (process.env.NODE_ENV !== "production") {
+      console.error("Program link error:", gl.getProgramInfoLog(program));
+    }
     gl.deleteProgram(program);
     return null;
   }

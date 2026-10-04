@@ -89,10 +89,10 @@ export function Footer() {
             &copy; {currentYear} {siteConfig.legalName}. All Rights Reserved.
           </p>
           <div className="mt-4 flex space-x-6 md:mt-0">
-            <Link href="#contact" className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold">
+            <Link href="/privacy-policy" className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold">
               Privacy Policy
             </Link>
-            <Link href="#contact" className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold">
+            <Link href="/terms" className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold">
               Terms of Service
             </Link>
             <Link href="#contact" className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold">

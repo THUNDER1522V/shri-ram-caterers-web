@@ -1,4 +1,5 @@
 import type { NavigationConfig } from "@/types/navigation";
+import { siteConfig } from "@/config/siteConfig";
 
 export const navigationConfig: NavigationConfig = {
   mainNav: [
@@ -49,7 +50,7 @@ export const navigationConfig: NavigationConfig = {
     {
       title: "Connect",
       items: [
-        { title: "WhatsApp", href: "https://wa.me/919999999999", external: true },
+        { title: "WhatsApp", href: siteConfig.links.whatsapp, external: true },
         { title: "Contact", href: "/#contact" },
       ],
     },
