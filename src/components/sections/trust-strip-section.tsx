@@ -31,11 +31,11 @@ const metrics: TrustMetric[] = [
   },
   {
     icon: Award,
-    value: "750+",
+    value: "500+",
     label: "Weddings Catered",
     subtext: "Flawless Execution Record",
     isCountUp: true,
-    valueNum: 750,
+    valueNum: 500,
     suffix: "+"
   },
   {
@@ -49,11 +49,11 @@ const metrics: TrustMetric[] = [
   },
   {
     icon: Star,
-    value: "4.9★",
+    value: "4.8★",
     label: "Google Verified Rating",
     subtext: "Based on 200+ Host Reviews",
     isCountUp: true,
-    valueNum: 4.9,
+    valueNum: 4.8,
     suffix: "★"
   },
 ];

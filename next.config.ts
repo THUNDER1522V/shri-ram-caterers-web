@@ -6,6 +6,11 @@ const nextConfig: NextConfig = {
   compress: true,
 
   productionBrowserSourceMaps: false,
+  ...(process.env.NODE_ENV !== "production"
+    ? {
+        allowedDevOrigins: ["localhost", "127.0.0.1", "172.16.0.2"],
+      }
+    : {}),
 
   images: {
     formats: ["image/avif", "image/webp"],

@@ -38,7 +38,7 @@ const FADE_UP = (delay = 0): Variants => ({
 /* ─── Trust pills data ───────────────────────────────────────────────────── */
 const TRUST = [
   { stat: "500+", label: "Events Catered" },
-  { stat: "25 yrs", label: "of Royal Hospitality" },
+  { stat: "15+ Years", label: "of Royal Hospitality" },
   { stat: "100%", label: "Pure Vegetarian" },
 ];
 

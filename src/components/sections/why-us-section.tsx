@@ -47,25 +47,7 @@ export function WhyUsSection() {
         <ClientPetals petalCount={6} dustCount={4} sectionId="why-us" />
       </div>
       <Container className="relative z-10">
-        {/* Stamp Badge (Decorative, CLS-stable fixed dimensions) */}
-        <div
-          aria-hidden="true"
-          className="hidden md:block absolute -top-8 -right-4 lg:-right-8 z-20 pointer-events-none text-gold select-none"
-        >
-          <div className="relative w-40 h-40 flex items-center justify-center animate-[spin_18s_linear_infinite]">
-            <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full fill-current">
-              <path id="circlePath" d="M 50, 50 m -35, 0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0" fill="none" />
-              <text fontSize="7" className="font-heading font-bold uppercase">
-                <textPath href="#circlePath" startOffset="0%" textLength="219.91">
-                  PURE VEG · ROYAL CATERING · SHRI RAM CATERERS · 
-                </textPath>
-              </text>
-            </svg>
-            <div className="text-gold">
-              <Star className="w-8 h-8 fill-current" />
-            </div>
-          </div>
-        </div>
+
 
         {/* Section Header */}
         <Reveal className="mx-auto max-w-2xl text-center">

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { siteConfig } from "@/config/site";
 import { navigationConfig } from "@/config/navigation";
 import { Container } from "@/components/common/container";
@@ -48,8 +49,15 @@ export function Navbar() {
             className="flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             onClick={closeMenu}
           >
-            <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-gold/20 text-gold font-heading font-bold">
-              SRC
+            <div className="relative flex items-center justify-center">
+              <Image
+                src="/images/logo.png"
+                alt="Shri Ram Caterers Logo"
+                width={120}
+                height={56}
+                className="h-12 w-auto object-contain drop-shadow-md"
+                priority
+              />
             </div>
           </Link>
 
