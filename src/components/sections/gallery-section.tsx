@@ -145,7 +145,7 @@ function GalleryVideoCard({ item, index, onOpenLightbox }: VideoCardProps) {
             muted
             loop
             playsInline
-            preload="none"
+            preload="metadata"
             aria-label={item.title}
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
           />

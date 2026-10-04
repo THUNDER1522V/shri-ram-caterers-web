@@ -18,10 +18,8 @@ export function VideoStack() {
     const container = containerRef.current;
     if (!v) return;
 
-    let hasStarted = false;
-    const startVideo = () => {
-      if (!v || !isIntersectingRef.current || hasStarted) return;
-      hasStarted = true;
+    const playVideo = () => {
+      if (!v) return;
       v.play()
         .then(() => {
           setIsPlaying(true);
@@ -31,74 +29,39 @@ export function VideoStack() {
         });
     };
 
-    // Load and play hero video after window load and browser idle
-    let idleHandle: number | undefined;
-    let timerHandle: NodeJS.Timeout | undefined;
+    // Attempt instant play
+    playVideo();
 
-    const scheduleStart = () => {
-      if (typeof window !== "undefined" && "requestIdleCallback" in window) {
-        idleHandle = (
-          window as unknown as {
-            requestIdleCallback: (
-              cb: () => void,
-              opts?: { timeout: number }
-            ) => number;
-          }
-        ).requestIdleCallback(startVideo, { timeout: 4000 });
-      } else {
-        timerHandle = setTimeout(startVideo, 3000);
-      }
-    };
-
-    if (document.readyState === "complete") {
-      scheduleStart();
-    } else {
-      window.addEventListener("load", scheduleStart, { once: true });
-    }
-
-    // Pause hero video when leaving viewport
+    // Observe container intersection with rootMargin
     if (!container) return;
     const io = new IntersectionObserver(
       ([entry]) => {
         isIntersectingRef.current = entry.isIntersecting;
-        if (!entry.isIntersecting) {
+        if (entry.isIntersecting) {
+          playVideo();
+        } else {
           v.pause();
           setIsPlaying(false);
-        } else if (hasStarted) {
-          v.play()
-            .then(() => setIsPlaying(true))
-            .catch(() => setIsPlaying(false));
         }
       },
-      { threshold: 0.1 }
+      { rootMargin: "150px 0px", threshold: 0.05 }
     );
     io.observe(container);
 
-    // Pause on tab visibility change
+    // Handle tab visibility change
     const onVisibilityChange = () => {
       if (document.hidden) {
         v.pause();
         setIsPlaying(false);
-      } else if (isIntersectingRef.current && hasStarted) {
-        v.play()
-          .then(() => setIsPlaying(true))
-          .catch(() => setIsPlaying(false));
+      } else if (isIntersectingRef.current) {
+        playVideo();
       }
     };
     document.addEventListener("visibilitychange", onVisibilityChange);
 
     return () => {
-      window.removeEventListener("load", scheduleStart);
       io.disconnect();
       document.removeEventListener("visibilitychange", onVisibilityChange);
-      if (idleHandle !== undefined && "cancelIdleCallback" in window) {
-        (
-          window as unknown as { cancelIdleCallback: (id: number) => void }
-        ).cancelIdleCallback(idleHandle);
-      }
-      if (timerHandle !== undefined) {
-        clearTimeout(timerHandle);
-      }
     };
   }, []);
 
@@ -304,10 +267,11 @@ export function VideoStack() {
           ref={videoRef}
           className="absolute inset-0 h-full w-full object-cover rounded-[24px]"
           poster={frontCard.poster}
+          autoPlay
           muted
           loop
           playsInline
-          preload="none"
+          preload="auto"
           aria-label={frontCard.ariaLabel}
         >
           <source src={frontCard.mp4} type="video/mp4" />

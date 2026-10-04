@@ -116,7 +116,7 @@ function ServiceMedia({ service }: { service: ServiceItem }) {
             muted
             loop
             playsInline
-            preload="none"
+            preload="metadata"
             aria-label={service.title}
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]"
           />

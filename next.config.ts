@@ -21,19 +21,27 @@ const nextConfig: NextConfig = {
   },
 
   async headers() {
+    // Only send HSTS in deployed cloud environments to avoid poisoning localhost with HTTPS
+    const isDeployed = Boolean(
+      process.env.VERCEL ||
+      process.env.CF_PAGES ||
+      process.env.NETLIFY ||
+      process.env.AWS_REGION ||
+      process.env.DEPLOYED === "true"
+    );
+
     const cspDirectives = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://images.unsplash.com",
       "font-src 'self'",
-      "media-src 'self' blob:",
+      "media-src 'self' blob: data:",
       "connect-src 'self'",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
       "object-src 'none'",
-      "upgrade-insecure-requests",
     ].join("; ");
 
     return [
@@ -78,10 +86,19 @@ const nextConfig: NextConfig = {
       {
         source: "/(.*)",
         headers: [
-          {
-            key: "Strict-Transport-Security",
-            value: "max-age=63072000; includeSubDomains; preload",
-          },
+          ...(isDeployed
+            ? [
+                {
+                  key: "Strict-Transport-Security",
+                  value: "max-age=63072000; includeSubDomains; preload",
+                },
+              ]
+            : [
+                {
+                  key: "Strict-Transport-Security",
+                  value: "max-age=0",
+                },
+              ]),
           {
             key: "X-Content-Type-Options",
             value: "nosniff",
