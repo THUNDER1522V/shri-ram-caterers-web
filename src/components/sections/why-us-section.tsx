@@ -2,7 +2,7 @@ import * as React from "react";
 import { Container } from "@/components/common/container";
 import { Section } from "@/components/common/section";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Sparkles, ShieldCheck, Clock, UtensilsCrossed, Star } from "lucide-react";
+import { Sparkles, ShieldCheck, Clock, UtensilsCrossed } from "lucide-react";
 import { Reveal, RevealItem } from "@/components/ui/reveal";
 import { ClientPetals } from "@/components/common/client-petals";
 
