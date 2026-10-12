@@ -6,43 +6,21 @@ import { Section } from "@/components/common/section";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
+import type { FAQContent, FAQItem } from "@/types/faq";
+import { faqContent as defaultFAQContent } from "@/content/faq";
 
 const Petals = dynamic(() => import("@/components/Petals"), { ssr: false });
 
-interface FAQItem {
-  question: string;
-  answer: string;
+interface FAQSectionProps {
+  content?: FAQContent;
+  items?: FAQItem[];
 }
 
-const faqs: FAQItem[] = [
-  {
-    question: "Do you offer food tasting sessions before final booking?",
-    answer:
-      "Yes. We host private menu tasting sessions for families upon shortlisting your event requirements, ensuring you experience the exact taste, spice levels, and presentation planned for your celebration.",
-  },
-  {
-    question: "What is your minimum and maximum guest capacity?",
-    answer:
-      "We cater intimate gatherings starting from 100 guests up to grand mega-receptions of over 4,000 guests, with dedicated staff and dedicated kitchen managers assigned according to guest volume.",
-  },
-  {
-    question: "Can we customize our menu with regional and international cuisines?",
-    answer:
-      "Absolutely. Our culinary repertoire includes Traditional North Indian, Mughlai, Rajasthani, Gujarati, South Indian, as well as curated Continental and Asian live interactive stations.",
-  },
-  {
-    question: "How do you maintain food temperature and hygiene on-site?",
-    answer:
-      "We operate professional mobile warming units, insulated food transportation vessels, and commercial-grade mobile prep kitchens adhering to strict safety and sanitization standards.",
-  },
-  {
-    question: "How far in advance should we reserve our wedding date?",
-    answer:
-      "Due to peak wedding season demands (Asoj, Kartik, and Magh dates), we recommend booking 3 to 6 months in advance to ensure date exclusivity and dedicated staff allocation.",
-  },
-];
-
-export function FAQSection() {
+export function FAQSection({
+  content = defaultFAQContent,
+  items,
+}: FAQSectionProps) {
+  const faqList = items || content.faqs;
   const [openIndex, setOpenIndex] = React.useState<number | null>(0);
 
   const toggle = (idx: number) => {
@@ -60,23 +38,23 @@ export function FAQSection() {
         {/* Section Header */}
         <div className="mx-auto max-w-2xl text-center">
           <span className="font-heading text-xs uppercase tracking-[0.25em] text-gold-600 md:text-sm">
-            Clear Answers
+            {content.eyebrow}
           </span>
           <h2 className="mt-3 font-heading text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-            Frequently Asked Questions
+            {content.title}
           </h2>
           <p className="mt-4 font-body text-base text-muted-foreground">
-            Everything you need to know about our menus, tasting sessions, logistics, and wedding booking process.
+            {content.subtitle}
           </p>
         </div>
 
         {/* Accordion Layout */}
         <div className="mx-auto mt-12 max-w-3xl space-y-4">
-          {faqs.map((faq, idx) => {
+          {faqList.map((faq, idx) => {
             const isOpen = openIndex === idx;
             return (
               <div
-                key={idx}
+                key={faq.id || idx}
                 className="overflow-hidden rounded-card border border-border bg-card transition-colors duration-200"
               >
                 <button

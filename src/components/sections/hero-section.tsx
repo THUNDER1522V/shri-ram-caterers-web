@@ -1,49 +1,27 @@
 "use client";
 
-import type { Variants } from "framer-motion";
-
-/**
- * hero-section.tsx  (orchestrator)
- * ─────────────────────────────────────────────────────────────────────────────
- * Assembles:
- *   • ShaderBackground  — full-bleed WebGL candlelight shader (deferred to idle)
- *   • Left column       — eyebrow / headline (immediate LCP) / subline / CTAs / trust strip
- *   • VideoStack        — 6-card overlapping depth reel
- */
-
 import * as React from "react";
 import { m } from "framer-motion";
 import { MessageCircle, ArrowRight, CalendarCheck } from "lucide-react";
 import dynamic from "next/dynamic";
-import { siteConfig } from "@/config/siteConfig";
 import { VideoStack } from "./hero/video-stack";
+import type { HeroContent, HeroVideoItem } from "@/types/hero";
+import { heroContent as defaultHeroContent } from "@/content/hero";
+import { FADE_UP } from "@/animations/motion";
 
 const MouseGradient = dynamic(() => import("@/components/MouseGradient"), {
   ssr: false,
 });
 
-/* ─── Animation variants ─────────────────────────────────────────────────── */
-const LUXURY_EASE = [0.16, 1, 0.3, 1] as [number, number, number, number];
+interface HeroSectionProps {
+  content?: HeroContent;
+  videos?: HeroVideoItem[];
+}
 
-const FADE_UP = (delay = 0): Variants => ({
-  hidden: { opacity: 0, y: 28 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.72, ease: LUXURY_EASE, delay },
-  },
-});
-
-
-/* ─── Trust pills data ───────────────────────────────────────────────────── */
-const TRUST = [
-  { stat: "500+", label: "Events Catered" },
-  { stat: "15+ Years", label: "of Royal Hospitality" },
-  { stat: "100%", label: "Pure Vegetarian" },
-];
-
-/* ─── Main component ─────────────────────────────────────────────────────── */
-export function HeroSection() {
+export function HeroSection({
+  content = defaultHeroContent,
+  videos,
+}: HeroSectionProps) {
   const sectionRef = React.useRef<HTMLElement>(null);
   const [canLoadShader, setCanLoadShader] = React.useState(false);
 
@@ -71,6 +49,8 @@ export function HeroSection() {
       return () => clearTimeout(timer);
     }
   }, []);
+
+  const videoList = videos || content.videos;
 
   return (
     <section
@@ -124,7 +104,7 @@ export function HeroSection() {
                 className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#C6A15B]"
               />
               <span className="font-body text-[11px] font-semibold uppercase tracking-[0.3em] text-[#C6A15B]">
-                Royal Indian Wedding Catering
+                {content.eyebrow}
               </span>
             </m.div>
 
@@ -136,10 +116,10 @@ export function HeroSection() {
               animate="show"
               className="mt-3 font-heading text-4xl font-semibold leading-[1.08] tracking-tight text-[#E8D6A8] sm:text-5xl md:text-5xl lg:text-[3.25rem] xl:text-[3.75rem]"
             >
-              Grand Feasts.{" "}
+              {content.headline.primary}{" "}
               <br className="hidden sm:block" />
               <em className="font-normal not-italic text-[#C6A15B]">
-                Royal Hospitality.
+                {content.headline.secondary}
               </em>
             </m.h1>
 
@@ -150,9 +130,7 @@ export function HeroSection() {
               animate="show"
               className="mt-3.5 max-w-lg font-body text-sm sm:text-base leading-relaxed text-[#E8D6A8]/75"
             >
-              Bespoke pure-vegetarian culinary curations, heritage recipes, and
-              flawless banquet management — crafted for North India&rsquo;s most
-              cherished celebrations.
+              {content.subline}
             </m.p>
 
             {/* CTAs */}
@@ -162,46 +140,62 @@ export function HeroSection() {
               animate="show"
               className="mt-5 flex flex-wrap items-center gap-3"
             >
-              {/* Primary CTA — solid gold */}
-              <a
-                href="#contact"
-                className="group inline-flex h-[50px] items-center gap-2.5 rounded-[14px] bg-[#C6A15B] px-6 sm:px-7 font-body text-sm sm:text-base font-semibold text-[#0B0B0B] shadow-[0_4px_24px_rgba(198,161,91,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#D4B06A] hover:shadow-[0_6px_32px_rgba(198,161,91,0.38)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C6A15B] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0B0B]"
-                aria-label="Get a custom wedding catering quote"
-              >
-                <CalendarCheck
-                  className="h-4.5 w-4.5 transition-transform duration-200 group-hover:scale-110"
-                  aria-hidden="true"
-                />
-                Get a Quote
-              </a>
+              {content.actions.map((action, idx) => {
+                if (action.variant === "primary") {
+                  return (
+                    <a
+                      key={idx}
+                      href={action.href}
+                      target={action.isExternal ? "_blank" : undefined}
+                      rel={action.isExternal ? "noopener noreferrer" : undefined}
+                      className="group inline-flex h-[50px] items-center gap-2.5 rounded-[14px] bg-[#C6A15B] px-6 sm:px-7 font-body text-sm sm:text-base font-semibold text-[#0B0B0B] shadow-[0_4px_24px_rgba(198,161,91,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#D4B06A] hover:shadow-[0_6px_32px_rgba(198,161,91,0.38)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C6A15B] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0B0B]"
+                      aria-label={action.label}
+                    >
+                      <CalendarCheck
+                        className="h-4.5 w-4.5 transition-transform duration-200 group-hover:scale-110"
+                        aria-hidden="true"
+                      />
+                      {action.label}
+                    </a>
+                  );
+                }
 
-              {/* Secondary CTA — outlined gold */}
-              <a
-                href={siteConfig.links.whatsapp}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group inline-flex h-[50px] items-center gap-2.5 rounded-[14px] border border-[#C6A15B]/50 px-6 sm:px-7 font-body text-sm sm:text-base font-semibold text-[#C6A15B] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#C6A15B] hover:bg-[#C6A15B]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C6A15B] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0B0B]"
-                aria-label="Chat directly with our catering directors on WhatsApp"
-              >
-                <MessageCircle
-                  className="h-4.5 w-4.5 transition-transform duration-200 group-hover:scale-110"
-                  aria-hidden="true"
-                />
-                WhatsApp Us
-              </a>
+                if (action.variant === "secondary") {
+                  return (
+                    <a
+                      key={idx}
+                      href={action.href}
+                      target={action.isExternal ? "_blank" : undefined}
+                      rel={action.isExternal ? "noopener noreferrer" : undefined}
+                      className="group inline-flex h-[50px] items-center gap-2.5 rounded-[14px] border border-[#C6A15B]/50 px-6 sm:px-7 font-body text-sm sm:text-base font-semibold text-[#C6A15B] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#C6A15B] hover:bg-[#C6A15B]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C6A15B] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0B0B]"
+                      aria-label={action.label}
+                    >
+                      <MessageCircle
+                        className="h-4.5 w-4.5 transition-transform duration-200 group-hover:scale-110"
+                        aria-hidden="true"
+                      />
+                      {action.label}
+                    </a>
+                  );
+                }
 
-              {/* Tertiary — text link */}
-              <a
-                href="#celebrations"
-                className="group inline-flex h-[50px] items-center gap-1.5 px-2 font-body text-sm text-[#E8D6A8]/65 transition-colors duration-200 hover:text-[#E8D6A8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C6A15B]"
-                aria-label="Explore our royal culinary celebrations"
-              >
-                Explore Celebrations
-                <ArrowRight
-                  className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1"
-                  aria-hidden="true"
-                />
-              </a>
+                return (
+                  <a
+                    key={idx}
+                    href={action.href}
+                    target={action.isExternal ? "_blank" : undefined}
+                    rel={action.isExternal ? "noopener noreferrer" : undefined}
+                    className="group inline-flex h-[50px] items-center gap-1.5 px-2 font-body text-sm text-[#E8D6A8]/65 transition-colors duration-200 hover:text-[#E8D6A8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C6A15B]"
+                    aria-label={action.label}
+                  >
+                    {action.label}
+                    <ArrowRight
+                      className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1"
+                      aria-hidden="true"
+                    />
+                  </a>
+                );
+              })}
             </m.div>
 
             {/* Trust strip */}
@@ -212,10 +206,10 @@ export function HeroSection() {
               className="mt-6 lg:mt-8 border-t border-[#C6A15B]/15 pt-3.5"
             >
               <p className="mb-2 font-body text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#E8D6A8]/45">
-                Trusted by India&rsquo;s finest families
+                {content.trustTitle}
               </p>
               <div className="flex flex-wrap items-start gap-x-6 sm:gap-x-8 gap-y-3">
-                {TRUST.map(({ stat, label }) => (
+                {content.trustPills.map(({ stat, label }) => (
                   <div key={stat} className="flex flex-col min-w-[70px]">
                     <span className="font-heading text-xl sm:text-2xl font-semibold leading-none text-[#C6A15B] tabular-nums">
                       {stat}
@@ -235,13 +229,13 @@ export function HeroSection() {
             animate={{ opacity: 1, x: 0 }}
             className="flex justify-center lg:justify-end"
           >
-            <VideoStack />
+            <VideoStack videos={videoList} />
           </m.div>
 
         </div>
       </div>
 
-      {/* ── Scroll indicator (hidden on shorter screens to prevent collision with stats) ── */}
+      {/* ── Scroll indicator ── */}
       <m.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}

@@ -1,15 +1,14 @@
-export interface AddressConfig {
-  street: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  country: string;
-}
-
-export interface GeoConfig {
-  latitude: number;
-  longitude: number;
-}
+export * from "./hero";
+export * from "./stats";
+export * from "./services";
+export * from "./menu";
+export * from "./why-us";
+export * from "./gallery";
+export * from "./reviews";
+export * from "./faq";
+export * from "./contact";
+export * from "./navigation";
+export * from "./seo";
 
 export interface SiteConfig {
   name: string;
@@ -23,15 +22,8 @@ export interface SiteConfig {
   ogImage: string;
   openingHours: string;
   priceRange: string;
-  geo: GeoConfig;
-  links: {
-    whatsapp: string;
-    phone: string;
-    email: string;
-    instagram: string;
-    facebook: string;
-    googleBusiness?: string;
-  };
+  geo: import("./contact").GeoConfig;
+  links: import("./contact").SocialLinks;
   contact: {
     phoneFormatted: string;
     phoneRaw: string;
@@ -39,6 +31,6 @@ export interface SiteConfig {
     whatsappRaw: string;
     whatsappPrefilledMessage: string;
     email: string;
-    address: AddressConfig;
+    address: import("./contact").AddressConfig;
   };
 }

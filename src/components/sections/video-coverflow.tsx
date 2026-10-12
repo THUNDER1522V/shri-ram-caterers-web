@@ -6,12 +6,18 @@ import { m, PanInfo, useReducedMotion } from "framer-motion";
 import { Play, Pause, Volume2, VolumeX, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VideoTestimonial } from "@/data/testimonials";
+import type { VideoReviewItem } from "@/types/reviews";
+import { reviewsContent } from "@/content/reviews";
+
+export type CoverflowItem = (VideoReviewItem | VideoTestimonial) & {
+  name?: string;
+};
 
 interface VideoCoverflowProps {
-  testimonials: VideoTestimonial[];
+  testimonials?: CoverflowItem[];
 }
 
-export function VideoCoverflow({ testimonials }: VideoCoverflowProps) {
+export function VideoCoverflow({ testimonials = reviewsContent.videoReviews }: VideoCoverflowProps) {
   const [activeIndex, setActiveIndex] = useState(Math.floor(testimonials.length / 2));
   const [isHydrated, setIsHydrated] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -158,8 +164,9 @@ export function VideoCoverflow({ testimonials }: VideoCoverflowProps) {
     return "none";
   };
 
-  const getInitials = (name: string) => {
-    const parts = name.split(" ");
+  const getInitials = (name?: string) => {
+    if (!name) return "SR";
+    const parts = name.trim().split(" ");
     if (parts.length > 1) return (parts[0][0] + parts[1][0]).toUpperCase();
     return name.substring(0, 2).toUpperCase();
   };
@@ -178,7 +185,13 @@ export function VideoCoverflow({ testimonials }: VideoCoverflowProps) {
     >
       {/* Live Region for Screen Readers */}
       <div aria-live="polite" className="sr-only">
-        {isHydrated && `Showing testimonial from ${testimonials[activeIndex]?.name}`}
+        {isHydrated &&
+          `Showing testimonial from ${
+            testimonials[activeIndex]?.name ||
+            ("author" in (testimonials[activeIndex] || {})
+              ? (testimonials[activeIndex] as { author: string }).author
+              : "Client")
+          }`}
       </div>
 
       <div className="relative mx-auto flex h-[560px] w-full max-w-7xl items-center justify-center">
@@ -276,7 +289,7 @@ export function VideoCoverflow({ testimonials }: VideoCoverflowProps) {
               ) : (
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
                   <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-gold/30 bg-gold/10 font-heading text-xl text-gold">
-                    {getInitials(t.name)}
+                    {getInitials(t.name || ("author" in t ? (t as { author: string }).author : undefined))}
                   </div>
                   {t.quote && (
                     <p className="font-heading text-lg italic text-champagne-100">
@@ -332,10 +345,10 @@ export function VideoCoverflow({ testimonials }: VideoCoverflowProps) {
               {/* Metadata Text */}
               <div className="absolute inset-x-0 bottom-0 z-20 p-5 text-left pointer-events-none">
                 <h3 className="font-heading text-xl font-medium text-white drop-shadow-md">
-                  {t.name}
+                  {t.name || ("author" in t ? (t as { author: string }).author : "")}
                 </h3>
                 <p className="mt-1 font-heading text-xs font-semibold uppercase tracking-wider text-gold drop-shadow-md">
-                  {t.eventType}
+                  {"eventType" in t ? (t as { eventType: string }).eventType : ("event" in t ? (t as { event: string }).event : "")}
                 </p>
                 <p className="mt-0.5 font-body text-xs text-white/80 drop-shadow-md">
                   {t.location}

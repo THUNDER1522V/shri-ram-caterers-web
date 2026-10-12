@@ -1,0 +1,68 @@
+import type { GalleryContent } from "@/types/gallery";
+
+export const galleryContent: GalleryContent = {
+  eyebrow: "Captured Celebrations",
+  title: "A Glimpse into Royal Hospitality",
+  subtitle:
+    "Explore our grand wedding banquets, thematic buffet styling, and high-energy culinary theatres captured live across premier venues.",
+  categories: [
+    "All Moments",
+    "Weddings",
+    "Buffet Architecture",
+    "Live Counters",
+    "Beverages",
+    "Themes & Decor",
+  ],
+  items: [
+    {
+      id: "weddings",
+      title: "Celebrating Divyansh & Naina",
+      category: "Weddings",
+      subtitle: "Grand Royal Wedding Banquet",
+      tag: "Wedding Gala",
+      type: "video",
+      src: "/videos/divyansh-naina.mp4",
+      aspectRatio: "9/16",
+    },
+    {
+      id: "buffet",
+      title: "Royal Buffet Architecture",
+      category: "Buffet Architecture",
+      subtitle: "Multi-Tier Luxury Banquet Lines",
+      tag: "Buffet Display",
+      type: "video",
+      src: "/videos/buffet-architecture.mp4",
+      aspectRatio: "9/16",
+    },
+    {
+      id: "live-counters",
+      title: "Live Chef Culinary Theatre",
+      category: "Live Counters",
+      subtitle: "Artisan Chaat & Sizzling Delights",
+      tag: "Live Food Theatre",
+      type: "video",
+      src: "/videos/bhelpuri.mp4",
+      aspectRatio: "9/16",
+    },
+    {
+      id: "beverages",
+      title: "Exotic Welcome Mocktails",
+      category: "Beverages",
+      subtitle: "Craft Botanical Infusions",
+      tag: "Welcome Bar",
+      type: "video",
+      src: "/videos/exotic-mocktails.mp4",
+      aspectRatio: "9/16",
+    },
+    {
+      id: "themes",
+      title: "Bespoke Counter Styling",
+      category: "Themes & Decor",
+      subtitle: "Grand Royal Floral & Dining Themes",
+      tag: "Thematic Styling",
+      type: "video",
+      src: "/videos/themes-and-counters.mp4",
+      aspectRatio: "9/16",
+    },
+  ],
+};

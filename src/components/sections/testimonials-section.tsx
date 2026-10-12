@@ -4,51 +4,38 @@ import * as React from "react";
 import { Container } from "@/components/common/container";
 import { Section } from "@/components/common/section";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { Star, CheckCircle2, ExternalLink } from "lucide-react";
+import { Star, CheckCircle2, ExternalLink, Image as ImageIcon } from "lucide-react";
 import { Reveal, RevealItem } from "@/components/ui/reveal";
 import { VideoCoverflow } from "./video-coverflow";
-import { videoTestimonials } from "@/data/testimonials";
-import { siteConfig } from "@/config/siteConfig";
+import Image from "next/image";
 import dynamic from "next/dynamic";
+import type {
+  ReviewsContent,
+  VideoReviewItem,
+  GoogleReviewItem,
+  ImageReviewItem,
+} from "@/types/reviews";
+import { reviewsContent as defaultReviewsContent } from "@/content/reviews";
 
 const Petals = dynamic(() => import("@/components/Petals"), { ssr: false });
 
-interface Testimonial {
-  quote: string;
-  author: string;
-  role: string;
-  event: string;
-  date: string;
+interface TestimonialsSectionProps {
+  content?: ReviewsContent;
+  videoReviews?: VideoReviewItem[];
+  googleReviews?: GoogleReviewItem[];
+  imageReviews?: ImageReviewItem[];
 }
 
-const testimonials: Testimonial[] = [
-  {
-    quote:
-      "We had an absolutely wonderful experience with Shree Ram Caterers. The service provided was truly amazing and exceeded all our expectations. Every dish served was incredibly tasty and prepared with evident care and quality ingredients. The professionalism with which they managed the entire event was commendable. Our guests were thoroughly impressed with the delicious food and the seamless execution.",
-    author: "Aditya Sharma",
-    role: "Local Guide",
-    event: "13 reviews",
-    date: "10 months ago",
-  },
-  {
-    quote:
-      "Shri Ram caters provided outstanding catering for our event! The food was delicious, beautifully presented, and served on time. The team was professional, attentive, and made sure everything went smoothly. Guests especially loved the south Indian food and many complimented the overall quality. I highly recommend their services for any occasion!",
-    author: "Tanvi Agarwal",
-    role: "Local Guide",
-    event: "7 reviews",
-    date: "a year ago",
-  },
-  {
-    quote:
-      "Absolutely stellar experience with this catering service! From start to finish, their attention to detail and commitment to quality shone through. The food was not just delicious, but exquisitely presented, pleasing both the palate and the eye. Every dish was a testament to their culinary expertise and dedication to excellence.",
-    author: "Kailash Lal Sah",
-    role: "Client",
-    event: "5 reviews",
-    date: "2 years ago",
-  },
-];
+export function TestimonialsSection({
+  content = defaultReviewsContent,
+  videoReviews,
+  googleReviews,
+  imageReviews,
+}: TestimonialsSectionProps) {
+  const videos = videoReviews || content.videoReviews;
+  const googles = googleReviews || content.googleReviews;
+  const images = imageReviews || content.imageReviews;
 
-export function TestimonialsSection() {
   return (
     <Section id="reviews" className="relative overflow-hidden bg-[#0B0B0B]">
       {/* Soft Maroon Radial Glow behind the coverflow */}
@@ -63,23 +50,23 @@ export function TestimonialsSection() {
         {/* Section Header */}
         <Reveal className="mx-auto max-w-2xl text-center">
           <RevealItem className="inline-block font-heading text-xs uppercase tracking-[0.25em] text-gold md:text-sm">
-            Customer Stories
+            {content.eyebrow}
           </RevealItem>
           <RevealItem>
             <h2 className="mt-3 font-heading text-3xl font-semibold tracking-tight text-white md:text-4xl drop-shadow-sm">
-              Words From Families We Have Served
+              {content.title}
             </h2>
           </RevealItem>
           <RevealItem>
             <p className="mt-4 font-body text-base text-white/70">
-              Real experiences shared by parents and celebration hosts who trusted us with their most cherished milestones.
+              {content.subtitle}
             </p>
           </RevealItem>
         </Reveal>
 
         {/* Video Coverflow */}
         <Reveal delay={0.2} className="mt-4 w-full">
-          <VideoCoverflow testimonials={videoTestimonials} />
+          <VideoCoverflow testimonials={videos} />
         </Reveal>
 
         {/* Divider */}
@@ -90,16 +77,20 @@ export function TestimonialsSection() {
           <Reveal className="mb-8 flex flex-col items-center justify-between gap-4 sm:flex-row">
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white">
-                {/* Minimal G Logo placeholder or color icon */}
                 <span className="font-heading font-bold text-blue-600">G</span>
               </div>
-              <h3 className="font-heading text-lg font-medium text-white">
-                Verified Google Reviews
-              </h3>
+              <div>
+                <h3 className="font-heading text-lg font-medium text-white">
+                  Verified Google Reviews
+                </h3>
+                <p className="text-xs text-white/60">
+                  {content.googleSummary.rating}★ &bull; {content.googleSummary.reviewCountText}
+                </p>
+              </div>
             </div>
-            
+
             <a
-              href={siteConfig.links?.googleBusiness || "#"}
+              href={content.googleSummary.googleBusinessUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="group inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-2 font-body text-sm font-medium text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
@@ -110,13 +101,13 @@ export function TestimonialsSection() {
           </Reveal>
 
           <Reveal delay={0.1} staggerChildren={0.1} className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {testimonials.map((item, idx) => (
-              <RevealItem key={idx} className="h-full">
+            {googles.map((item, idx) => (
+              <RevealItem key={item.id || idx} className="h-full">
                 <Card className="flex h-full flex-col justify-between border-white/10 bg-white/5 backdrop-blur-sm">
                   <CardHeader className="pb-4 flex-grow">
-                    {/* 5-Star Rating */}
-                    <div className="flex items-center space-x-1" aria-label="5 out of 5 stars">
-                      {[...Array(5)].map((_, sIdx) => (
+                    {/* Rating Stars */}
+                    <div className="flex items-center space-x-1" aria-label={`${item.rating} out of 5 stars`}>
+                      {[...Array(item.rating || 5)].map((_, sIdx) => (
                         <Star
                           key={sIdx}
                           className="h-3.5 w-3.5 fill-gold text-gold"
@@ -124,9 +115,11 @@ export function TestimonialsSection() {
                         />
                       ))}
                     </div>
-                    <blockquote className="mt-4 font-body text-sm leading-relaxed text-white/90 italic">
-                      &ldquo;{item.quote}&rdquo;
-                    </blockquote>
+                    {item.quote && (
+                      <blockquote className="mt-4 font-body text-sm leading-relaxed text-white/90 italic">
+                        &ldquo;{item.quote}&rdquo;
+                      </blockquote>
+                    )}
                   </CardHeader>
 
                   <CardContent className="border-t border-white/10 pt-4 mt-auto">
@@ -135,14 +128,18 @@ export function TestimonialsSection() {
                         <p className="font-heading text-sm font-semibold text-white">
                           {item.author}
                         </p>
-                        <p className="text-[11px] font-medium text-gold/80 mt-0.5">
-                          {item.role}
-                        </p>
+                        {item.role && (
+                          <p className="text-[11px] font-medium text-gold/80 mt-0.5">
+                            {item.role}
+                          </p>
+                        )}
                         <p className="mt-0.5 text-[11px] text-white/50">
-                          {item.event} &bull; {item.date}
+                          {item.event} {item.date && <>&bull; {item.date}</>}
                         </p>
                       </div>
-                      <CheckCircle2 className="h-4 w-4 text-gold/80" aria-label="Verified Host" />
+                      {item.verified && (
+                        <CheckCircle2 className="h-4 w-4 text-gold/80" aria-label="Verified Host" />
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -150,7 +147,57 @@ export function TestimonialsSection() {
             ))}
           </Reveal>
         </div>
+
+        {/* Optional Image Reviews Row if configured */}
+        {images && images.length > 0 && (
+          <div className="mt-16">
+            <Reveal className="mb-6 flex items-center gap-2">
+              <ImageIcon className="h-5 w-5 text-gold" />
+              <h3 className="font-heading text-lg font-medium text-white">
+                Client Moments & Handwritten Reviews
+              </h3>
+            </Reveal>
+
+            <Reveal delay={0.1} className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              {images.map((imgReview) => (
+                <div
+                  key={imgReview.id}
+                  className="flex flex-col sm:flex-row gap-4 rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
+                >
+                  <div className="relative h-44 sm:h-36 sm:w-36 shrink-0 overflow-hidden rounded-lg">
+                    <Image
+                      src={imgReview.imageSrc}
+                      alt={imgReview.author}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-center">
+                    <div className="flex items-center space-x-1">
+                      {[...Array(imgReview.rating || 5)].map((_, sIdx) => (
+                        <Star key={sIdx} className="h-3 w-3 fill-gold text-gold" />
+                      ))}
+                    </div>
+                    {imgReview.quote && (
+                      <p className="mt-2 text-xs italic text-white/90">
+                        &ldquo;{imgReview.quote}&rdquo;
+                      </p>
+                    )}
+                    <p className="mt-2 text-xs font-semibold text-white">
+                      {imgReview.author}
+                    </p>
+                    <p className="text-[10px] text-gold/80">
+                      {imgReview.role} &bull; {imgReview.location}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </Reveal>
+          </div>
+        )}
       </Container>
     </Section>
   );
 }
+
+export const ReviewsSection = TestimonialsSection;

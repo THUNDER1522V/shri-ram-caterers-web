@@ -4,16 +4,25 @@ import * as React from "react";
 import { Container } from "@/components/common/container";
 import { Section } from "@/components/common/section";
 import { Button } from "@/components/ui/button";
-import { siteConfig } from "@/config/siteConfig";
 import { MessageCircle, PhoneCall } from "lucide-react";
 import dynamic from "next/dynamic";
 import { Reveal, RevealItem } from "@/components/ui/reveal";
+import type { BookingCTAContent, ContactConfig } from "@/types/contact";
+import { bookingCTAContent as defaultBookingCTAContent, contactConfig as defaultContactConfig } from "@/content/contact";
 
 const MouseGradient = dynamic(() => import("@/components/MouseGradient"), {
   ssr: false,
 });
 
-export function ContactCTASection() {
+interface ContactCTASectionProps {
+  content?: BookingCTAContent;
+  contact?: ContactConfig;
+}
+
+export function ContactCTASection({
+  content = defaultBookingCTAContent,
+  contact = defaultContactConfig,
+}: ContactCTASectionProps) {
   const [canLoadShader, setCanLoadShader] = React.useState(false);
 
   // Defer shader loading to idle
@@ -85,18 +94,18 @@ export function ContactCTASection() {
       <Container className="relative z-10">
         <Reveal className="mx-auto max-w-3xl text-center flex flex-col items-center">
           <RevealItem className="inline-block font-heading text-xs uppercase tracking-[0.25em] text-[#C6A15B] md:text-sm drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-            Begin Your Journey
+            {content.eyebrow}
           </RevealItem>
           
           <RevealItem>
             <h2 className="mt-6 font-heading text-4xl font-semibold leading-tight tracking-tight text-[#E8D6A8] sm:text-5xl md:text-6xl drop-shadow-[0_4px_16px_rgba(0,0,0,0.8)]">
-              Plan Your Celebration
+              {content.title}
             </h2>
           </RevealItem>
           
           <RevealItem>
             <p className="mt-6 max-w-2xl font-body text-base md:text-lg leading-relaxed text-[#F5EFE0] drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)] font-medium">
-              Speak directly with our senior catering directors to discuss dates, custom menu preferences, and schedule a private family tasting session.
+              {content.subtitle}
             </p>
           </RevealItem>
           
@@ -104,25 +113,25 @@ export function ContactCTASection() {
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 w-full">
               <Button asChild size="lg" className="w-full sm:w-auto h-[52px] px-8 rounded-btn bg-[#C6A15B] text-black font-semibold hover:bg-[#D4B06A] transition-all group shadow-[0_4px_24px_rgba(198,161,91,0.28)] hover:shadow-[0_6px_32px_rgba(198,161,91,0.38)]">
                 <a
-                  href={siteConfig.links.phone}
-                  aria-label="Call Shri Ram Caterers to get a wedding quote"
+                  href={contact.links.phone}
+                  aria-label={`Call ${contact.businessName} to get a wedding quote`}
                   className="inline-flex items-center space-x-2"
                 >
                   <PhoneCall className="h-5 w-5 transition-transform group-hover:scale-110" aria-hidden="true" />
-                  <span>Call for Quote</span>
+                  <span>{content.callButtonText}</span>
                 </a>
               </Button>
               
               <Button asChild variant="outline" size="lg" className="w-full sm:w-auto h-[52px] px-8 rounded-btn border-2 border-[#D4A84B] text-[#D4A84B] bg-[#0B0B0B]/40 hover:bg-[#D4A84B] hover:text-black transition-all group shadow-[0_2px_12px_rgba(0,0,0,0.4)]">
                 <a
-                  href={siteConfig.links.whatsapp}
+                  href={contact.links.whatsapp}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="Enquire with Shri Ram Caterers on WhatsApp"
+                  aria-label={`Enquire with ${contact.businessName} on WhatsApp`}
                   className="inline-flex items-center space-x-2"
                 >
                   <MessageCircle className="h-5 w-5 text-[#D4A84B] group-hover:text-black transition-colors" aria-hidden="true" />
-                  <span>WhatsApp Us</span>
+                  <span>{content.whatsappButtonText}</span>
                 </a>
               </Button>
             </div>
@@ -132,3 +141,5 @@ export function ContactCTASection() {
     </Section>
   );
 }
+
+export const BookingCTA = ContactCTASection;

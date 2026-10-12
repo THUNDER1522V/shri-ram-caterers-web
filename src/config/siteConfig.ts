@@ -1,31 +1,19 @@
 import type { SiteConfig } from "@/types";
+import { contactConfig } from "@/content/contact";
 
 /**
  * Centralized Site Configuration & Business Profile
- * Edit these values once to update all SEO meta tags, OpenGraph data,
- * LocalBusiness JSON-LD schemas, contact buttons, and footer details.
+ * Driven directly by src/content/contact.ts
  */
 export const siteConfig: SiteConfig = {
   // Business Name
-  name: "Shri Ram Caterers",
-  businessName: "Shri Ram Caterers",
-  legalName: "Shri Ram Caterers Private Limited",
+  name: contactConfig.businessName,
+  businessName: contactConfig.businessName,
+  legalName: contactConfig.legalName,
 
   // City & Geographic Coverage
-  city: "New Delhi",
-  areasServed: [
-    "New Delhi",
-    "Delhi NCR",
-    "Gurugram",
-    "Noida",
-    "Greater Noida",
-    "Faridabad",
-    "Ghaziabad",
-    "Jaipur",
-    "Agra",
-    "Chandigarh",
-    "North India",
-  ],
+  city: contactConfig.address.city,
+  areasServed: contactConfig.areasServed,
 
   // Brand SEO Descriptions & Domain
   description:
@@ -35,46 +23,25 @@ export const siteConfig: SiteConfig = {
   ogImage: "/opengraph-image",
 
   // Operating Hours & Pricing
-  openingHours: "Mo-Su 09:00-21:00",
+  openingHours: contactConfig.openingHours,
   priceRange: "₹₹₹₹",
 
   // Geo Coordinates (New Delhi NCR)
-  geo: {
-    latitude: 28.6139,
-    longitude: 77.209,
-  },
+  geo: contactConfig.geo,
 
   // Contact Info & Direct Links
   contact: {
-    phoneFormatted: "+91 99999 99999",
-    phoneRaw: "+919999999999",
-    whatsappFormatted: "+91 99999 99999",
-    whatsappRaw: "919999999999",
-    whatsappPrefilledMessage:
-      "Hello Shri Ram Caterers, I would like to inquire about wedding catering services for my upcoming celebration.",
-    email: "contact@shriramcaterers.com",
-    address: {
-      street: "Main Ring Road, South Extension",
-      city: "New Delhi",
-      state: "Delhi",
-      postalCode: "110049",
-      country: "IN",
-    },
+    phoneFormatted: contactConfig.phoneFormatted,
+    phoneRaw: contactConfig.phoneRaw,
+    whatsappFormatted: contactConfig.whatsappFormatted,
+    whatsappRaw: contactConfig.whatsappRaw,
+    whatsappPrefilledMessage: contactConfig.whatsappPrefilledMessage,
+    email: contactConfig.email,
+    address: contactConfig.address,
   },
 
   // Social & Direct Action Links
-  links: {
-    whatsapp:
-      "https://wa.me/919999999999?text=" +
-      encodeURIComponent(
-        "Hello Shri Ram Caterers, I would like to inquire about wedding catering services for my upcoming celebration."
-      ),
-    phone: "tel:+919999999999",
-    email: "mailto:contact@shriramcaterers.com",
-    instagram: "https://instagram.com/shriramcaterers",
-    facebook: "https://facebook.com/shriramcaterers",
-    googleBusiness: "https://maps.google.com/?cid=shriramcaterers",
-  },
+  links: contactConfig.links,
 };
 
 export default siteConfig;

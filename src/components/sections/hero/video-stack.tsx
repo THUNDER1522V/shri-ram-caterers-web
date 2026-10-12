@@ -1,18 +1,40 @@
 "use client";
 
 import * as React from "react";
-import { m } from "framer-motion";
-import { Play } from "lucide-react";
+import { motion } from "framer-motion";
+import { Play, Pause, ChevronRight, ChevronLeft, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { VIDEO_CARDS } from "./video-card-data";
+import type { HeroVideoItem } from "@/types/hero";
+import { heroContent } from "@/content/hero";
 
-export function VideoStack() {
+interface HeroMediaSystemProps {
+  videos?: HeroVideoItem[];
+  className?: string;
+}
+
+export function VideoStack({ videos = heroContent.videos, className }: HeroMediaSystemProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const videoRef = React.useRef<HTMLVideoElement>(null);
+  const [activeIndex, setActiveIndex] = React.useState(0);
   const [isPlaying, setIsPlaying] = React.useState(true);
   const isIntersectingRef = React.useRef(true);
 
+  const totalVideos = videos.length;
+  const safeIndex = totalVideos > 0 ? ((activeIndex % totalVideos) + totalVideos) % totalVideos : 0;
+  const activeVideo = videos[safeIndex] || heroContent.videos[0];
+
+  // Up to 3 preview cards behind the featured card
+  const previewIndices = React.useMemo(() => {
+    if (totalVideos <= 1) return [];
+    const list: number[] = [];
+    for (let offset = 1; offset <= Math.min(3, totalVideos - 1); offset++) {
+      list.push((safeIndex + offset) % totalVideos);
+    }
+    return list;
+  }, [safeIndex, totalVideos]);
+
+  // Video autoplay & intersection handling
   React.useEffect(() => {
     const v = videoRef.current;
     const container = containerRef.current;
@@ -21,18 +43,12 @@ export function VideoStack() {
     const playVideo = () => {
       if (!v) return;
       v.play()
-        .then(() => {
-          setIsPlaying(true);
-        })
-        .catch(() => {
-          setIsPlaying(false);
-        });
+        .then(() => setIsPlaying(true))
+        .catch(() => setIsPlaying(false));
     };
 
-    // Attempt instant play
     playVideo();
 
-    // Observe container intersection with rootMargin
     if (!container) return;
     const io = new IntersectionObserver(
       ([entry]) => {
@@ -48,7 +64,6 @@ export function VideoStack() {
     );
     io.observe(container);
 
-    // Handle tab visibility change
     const onVisibilityChange = () => {
       if (document.hidden) {
         v.pause();
@@ -63,7 +78,7 @@ export function VideoStack() {
       io.disconnect();
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, []);
+  }, [safeIndex]);
 
   const togglePlay = () => {
     const v = videoRef.current;
@@ -77,254 +92,197 @@ export function VideoStack() {
     }
   };
 
-  const frontCard = VIDEO_CARDS[0];
-  const card1 = VIDEO_CARDS[1];
-  const card2 = VIDEO_CARDS[2];
-  const card3 = VIDEO_CARDS[3];
+  const handleNext = () => {
+    setActiveIndex((prev) => (prev + 1) % totalVideos);
+  };
+
+  const handlePrev = () => {
+    setActiveIndex((prev) => (prev - 1 + totalVideos) % totalVideos);
+  };
+
+  const handleSelectCard = (index: number) => {
+    setActiveIndex(index);
+  };
 
   return (
     <div
       ref={containerRef}
-      className="relative flex items-center justify-center w-full pr-10 sm:pr-14 lg:pr-24"
+      className={cn(
+        "relative flex flex-col items-center justify-center w-full pr-6 sm:pr-14 lg:pr-24",
+        className
+      )}
     >
-      {/* ── CARD 3 (Deepest Background Card: scale 0.82, x +84px, rot 6deg, opacity 0.45) ── */}
-      <div
-        className={cn(
-          "absolute w-[280px] h-[470px] sm:w-[320px] sm:h-[540px] lg:w-[360px] lg:h-[608px] xl:w-[380px] xl:h-[640px]",
-          "rounded-[24px] overflow-hidden isolate",
-          "border border-[#D4A84B]/20 shadow-[0_4px_24px_rgba(0,0,0,0.5)]",
-          "origin-center pointer-events-none select-none"
-        )}
-        style={{
-          transform: "translateX(84px) scale(0.82) rotate(6deg)",
-          opacity: 0.45,
-          zIndex: 5,
-          background: "#0B0B0B",
-        }}
-        aria-hidden="true"
-      >
-        <Image
-          src={card3.poster}
-          alt={card3.title}
-          fill
-          sizes="(max-width: 640px) 280px, (max-width: 1024px) 320px, 380px"
-          className="object-cover"
-        />
-        {/* Dark-to-maroon bottom overlay */}
-        <div
-          className="absolute inset-x-0 bottom-0 px-5 pb-5 pt-20 z-10 pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(to top, rgba(11,11,11,0.98) 0%, rgba(122,17,24,0.85) 50%, transparent 100%)",
-          }}
+      {/* ── CARD STACK CONTAINER ── */}
+      <div className="relative flex items-center justify-center w-[280px] h-[470px] sm:w-[320px] sm:h-[540px] lg:w-[360px] lg:h-[608px] xl:w-[380px] xl:h-[640px]">
+        {/* Stacked Preview Cards (Reverse order so deeper cards render behind) */}
+        {previewIndices
+          .slice()
+          .reverse()
+          .map((cardIndex, _stackPositionReversed) => {
+            const card = videos[cardIndex];
+            if (!card) return null;
+
+            // depth from 1 to 3
+            const depth = previewIndices.indexOf(cardIndex) + 1;
+            const translateX = depth === 1 ? 28 : depth === 2 ? 56 : 84;
+            const rotate = depth === 1 ? 2 : depth === 2 ? 4 : 6;
+            const scale = depth === 1 ? 0.94 : depth === 2 ? 0.88 : 0.82;
+            const opacity = depth === 1 ? 0.85 : depth === 2 ? 0.65 : 0.45;
+            const zIndex = 30 - depth * 5;
+
+            return (
+              <motion.div
+                key={card.id || cardIndex}
+                layout
+                onClick={() => handleSelectCard(cardIndex)}
+                className={cn(
+                  "absolute inset-0 rounded-[24px] overflow-hidden isolate cursor-pointer",
+                  "border border-[#D4A84B]/30 shadow-[0_4px_24px_rgba(0,0,0,0.6)]",
+                  "origin-center select-none transition-shadow hover:border-[#D4A84B]/70"
+                )}
+                style={{
+                  transform: `translateX(${translateX}px) scale(${scale}) rotate(${rotate}deg)`,
+                  opacity,
+                  zIndex,
+                }}
+                whileHover={{ scale: scale * 1.02 }}
+                title={`Click to view ${card.title}`}
+                aria-label={`Preview card: ${card.title}`}
+              >
+                {/* Poster / Background */}
+                <Image
+                  src={card.poster}
+                  alt={card.title}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 640px) 280px, (max-width: 1024px) 320px, 380px"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-[#0B0B0B]/30 to-transparent" />
+
+                {/* Subtitle / Title Pill at Bottom */}
+                <div className="absolute bottom-5 left-5 right-5 z-10 flex flex-col">
+                  {card.badge && (
+                    <span className="inline-flex items-center gap-1 self-start rounded-full bg-[#C6A15B]/30 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#E8D6A8] backdrop-blur-md">
+                      {card.badge}
+                    </span>
+                  )}
+                  <p className="mt-1 font-heading text-sm font-semibold text-[#E8D6A8] drop-shadow-md">
+                    {card.title}
+                  </p>
+                  {card.guests && (
+                    <p className="text-[11px] font-body text-[#E8D6A8]/70">
+                      {card.guests}
+                    </p>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
+
+        {/* ── FEATURED ACTIVE FRONT CARD (Z-40) ── */}
+        <motion.div
+          key={activeVideo.id}
+          layout
+          className={cn(
+            "relative w-full h-full rounded-[24px] overflow-hidden isolate z-40",
+            "border border-[#C6A15B]/60 shadow-[0_12px_48px_rgba(0,0,0,0.85)]",
+            "bg-[#0B0B0B]"
+          )}
         >
-          <div className="flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#D4A84B]" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#D4A84B]">
-              {card3.guests}
+          {/* Active Video Player */}
+          <video
+            ref={videoRef}
+            src={activeVideo.mp4}
+            poster={activeVideo.poster}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            aria-label={activeVideo.ariaLabel || activeVideo.title}
+            className="absolute inset-0 h-full w-full object-cover transition-opacity duration-500"
+          />
+
+          {/* Dark luxury bottom vignette */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-[#0B0B0B]/20 to-transparent pointer-events-none" />
+
+          {/* Top Badge: Royal Moment */}
+          <div className="absolute top-5 left-5 right-5 z-20 flex items-center justify-between">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0B0B0B]/70 border border-[#C6A15B]/40 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-[#E8D6A8] backdrop-blur-md">
+              <Sparkles className="h-3 w-3 text-[#C6A15B]" />
+              {activeVideo.badge || "Featured Celebration"}
             </span>
+
+            {/* Play/Pause Button */}
+            <button
+              type="button"
+              onClick={togglePlay}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0B0B0B]/70 border border-[#C6A15B]/40 text-[#E8D6A8] backdrop-blur-md transition-all hover:bg-[#C6A15B] hover:text-[#0B0B0B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C6A15B]"
+              aria-label={isPlaying ? "Pause featured reel" : "Play featured reel"}
+            >
+              {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 fill-current ml-0.5" />}
+            </button>
           </div>
-          <p className="mt-1 font-heading text-base sm:text-lg font-semibold tracking-tight text-[#F5EFE0] line-clamp-1">
-            {card3.title}
-          </p>
-          <p className="text-[11px] text-[#E8D6A8]/70 tracking-wide mt-0.5 font-body line-clamp-1">
-            {card3.location}
-          </p>
-        </div>
-      </div>
 
-      {/* ── CARD 2 (Middle Background Card: scale 0.88, x +56px, rot 4.5deg, opacity 0.65) ── */}
-      <div
-        className={cn(
-          "absolute w-[280px] h-[470px] sm:w-[320px] sm:h-[540px] lg:w-[360px] lg:h-[608px] xl:w-[380px] xl:h-[640px]",
-          "rounded-[24px] overflow-hidden isolate",
-          "border border-[#D4A84B]/30 shadow-[0_6px_28px_rgba(0,0,0,0.6)]",
-          "origin-center pointer-events-none select-none"
-        )}
-        style={{
-          transform: "translateX(56px) scale(0.88) rotate(4.5deg)",
-          opacity: 0.65,
-          zIndex: 10,
-          background: "#0B0B0B",
-        }}
-        aria-hidden="true"
-      >
-        <Image
-          src={card2.poster}
-          alt={card2.title}
-          fill
-          sizes="(max-width: 640px) 280px, (max-width: 1024px) 320px, 380px"
-          className="object-cover"
-        />
-        {/* Dark-to-maroon bottom overlay */}
-        <div
-          className="absolute inset-x-0 bottom-0 px-5 pb-5 pt-20 z-10 pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(to top, rgba(11,11,11,0.98) 0%, rgba(122,17,24,0.85) 50%, transparent 100%)",
-          }}
-        >
-          <div className="flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#D4A84B]" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#D4A84B]">
-              {card2.guests}
-            </span>
-          </div>
-          <p className="mt-1 font-heading text-base sm:text-lg font-semibold tracking-tight text-[#F5EFE0] line-clamp-1">
-            {card2.title}
-          </p>
-          <p className="text-[11px] text-[#E8D6A8]/70 tracking-wide mt-0.5 font-body line-clamp-1">
-            {card2.location}
-          </p>
-        </div>
-      </div>
+          {/* Bottom Info Overlay */}
+          <div className="absolute bottom-6 left-6 right-6 z-20">
+            <h3 className="font-heading text-xl sm:text-2xl font-bold text-[#E8D6A8] drop-shadow-md">
+              {activeVideo.title}
+            </h3>
+            {activeVideo.subtitle && (
+              <p className="mt-0.5 font-body text-xs sm:text-sm text-[#C6A15B] font-medium">
+                {activeVideo.subtitle}
+              </p>
+            )}
 
-      {/* ── CARD 1 (First Background Card: scale 0.94, x +28px, rot 2.5deg, opacity 0.85) ── */}
-      <div
-        className={cn(
-          "absolute w-[280px] h-[470px] sm:w-[320px] sm:h-[540px] lg:w-[360px] lg:h-[608px] xl:w-[380px] xl:h-[640px]",
-          "rounded-[24px] overflow-hidden isolate",
-          "border border-[#D4A84B]/40 shadow-[0_8px_32px_rgba(0,0,0,0.7)]",
-          "origin-center pointer-events-none select-none"
-        )}
-        style={{
-          transform: "translateX(28px) scale(0.94) rotate(2.5deg)",
-          opacity: 0.85,
-          zIndex: 20,
-          background: "#0B0B0B",
-        }}
-        aria-hidden="true"
-      >
-        <Image
-          src={card1.poster}
-          alt={card1.title}
-          fill
-          sizes="(max-width: 640px) 280px, (max-width: 1024px) 320px, 380px"
-          className="object-cover"
-        />
-        {/* Dark-to-maroon bottom overlay */}
-        <div
-          className="absolute inset-x-0 bottom-0 px-5 pb-5 pt-20 z-10 pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(to top, rgba(11,11,11,0.98) 0%, rgba(122,17,24,0.85) 50%, transparent 100%)",
-          }}
-        >
-          <div className="flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#D4A84B]" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#D4A84B]">
-              {card1.guests}
-            </span>
-          </div>
-          <p className="mt-1 font-heading text-base sm:text-lg font-semibold tracking-tight text-[#F5EFE0] line-clamp-1">
-            {card1.title}
-          </p>
-          <p className="text-[11px] text-[#E8D6A8]/70 tracking-wide mt-0.5 font-body line-clamp-1">
-            {card1.location}
-          </p>
-        </div>
-      </div>
-
-      {/* ── CARD 0 (Front Card: Active Video, z-30, scale 1.0) ── */}
-      <m.div
-        initial={false}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        tabIndex={0}
-        role="button"
-        aria-label={`Showcase reel for ${frontCard.title}. Press enter or space to pause or play.`}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            togglePlay();
-          }
-        }}
-        onClick={togglePlay}
-        className={cn(
-          "relative w-[280px] h-[470px] sm:w-[320px] sm:h-[540px] lg:w-[360px] lg:h-[608px] xl:w-[380px] xl:h-[640px]",
-          "rounded-[24px] overflow-hidden isolate",
-          "border border-[#D4A84B]/60 shadow-[0_0_40px_rgba(212,168,75,0.2),0_12px_40px_rgba(0,0,0,0.8)]",
-          "cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4A84B]"
-        )}
-        style={{
-          zIndex: 30,
-          background: "#0B0B0B",
-        }}
-      >
-        {/* Instant priority poster image behind video for zero layout shift / instant paint */}
-        <Image
-          src={frontCard.poster}
-          alt={frontCard.title}
-          fill
-          priority
-          fetchPriority="high"
-          sizes="(max-width: 640px) 280px, (max-width: 1024px) 320px, 380px"
-          className="object-cover rounded-[24px]"
-        />
-
-        {/* Active hero video */}
-        <video
-          ref={videoRef}
-          className="absolute inset-0 h-full w-full object-cover rounded-[24px]"
-          poster={frontCard.poster}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          aria-label={frontCard.ariaLabel}
-        >
-          <source src={frontCard.mp4} type="video/mp4" />
-          {frontCard.webm && <source src={frontCard.webm} type="video/webm" />}
-        </video>
-
-        {/* Glass reflection sheen (top edge) */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 h-32 rounded-t-[24px] z-10"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 100%)",
-          }}
-        />
-
-        {/* Luxury corner framing markers */}
-        <div className="pointer-events-none absolute left-4 top-4 h-5 w-5 border-l-2 border-t-2 border-[#D4A84B]/80 rounded-tl-sm z-10" />
-        <div className="pointer-events-none absolute right-4 top-4 h-5 w-5 border-r-2 border-t-2 border-[#D4A84B]/80 rounded-tr-sm z-10" />
-        <div className="pointer-events-none absolute bottom-4 left-4 h-5 w-5 border-b-2 border-l-2 border-[#D4A84B]/80 rounded-bl-sm z-10" />
-        <div className="pointer-events-none absolute bottom-4 right-4 h-5 w-5 border-b-2 border-r-2 border-[#D4A84B]/80 rounded-br-sm z-10" />
-
-        {/* Play icon overlay (visible when paused) */}
-        {!isPlaying && (
-          <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none transition-opacity duration-300">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[#D4A84B]/50 bg-black/60 backdrop-blur-md group-hover:bg-black/40 group-hover:scale-105 transition-all">
-              <Play className="ml-1.5 h-7 w-7 text-[#D4A84B]" aria-hidden="true" />
+            <div className="mt-2 flex items-center gap-3 text-xs text-[#E8D6A8]/80">
+              {activeVideo.guests && <span>{activeVideo.guests}</span>}
+              {activeVideo.guests && activeVideo.location && <span>&bull;</span>}
+              {activeVideo.location && <span>{activeVideo.location}</span>}
             </div>
           </div>
-        )}
+        </motion.div>
+      </div>
 
-        {/* Bottom metadata overlay with dark-to-maroon gradient */}
-        <div
-          className="absolute inset-x-0 bottom-0 px-6 pb-6 pt-24 z-10 pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(to top, rgba(11,11,11,0.98) 0%, rgba(122,17,24,0.85) 50%, transparent 100%)",
-          }}
-        >
-          <div className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#D4A84B] animate-pulse" />
-            <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#D4A84B]">
-              {frontCard.guests}
-            </span>
+      {/* ── CAROUSEL CONTROLS & THUMBNAIL INDICATORS ── */}
+      {totalVideos > 1 && (
+        <div className="mt-6 flex items-center gap-4 z-40">
+          <button
+            type="button"
+            onClick={handlePrev}
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-[#C6A15B]/30 bg-[#0B0B0B]/80 text-[#E8D6A8] transition-colors hover:border-[#C6A15B] hover:bg-[#C6A15B]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C6A15B]"
+            aria-label="Previous celebration video"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+
+          <div className="flex items-center gap-1.5">
+            {videos.map((vid, idx) => (
+              <button
+                key={vid.id || idx}
+                type="button"
+                onClick={() => handleSelectCard(idx)}
+                className={cn(
+                  "h-1.5 rounded-full transition-all duration-300",
+                  idx === safeIndex
+                    ? "w-6 bg-[#C6A15B]"
+                    : "w-2 bg-[#C6A15B]/30 hover:bg-[#C6A15B]/60"
+                )}
+                aria-label={`Go to video ${idx + 1}: ${vid.title}`}
+              />
+            ))}
           </div>
-          <p className="mt-1 font-heading text-lg sm:text-xl font-semibold tracking-wide text-[#F5EFE0] drop-shadow-md">
-            {frontCard.title}
-          </p>
-          <p className="text-xs text-[#E8D6A8]/75 tracking-wider mt-0.5 font-body">
-            {frontCard.location}
-          </p>
+
+          <button
+            type="button"
+            onClick={handleNext}
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-[#C6A15B]/30 bg-[#0B0B0B]/80 text-[#E8D6A8] transition-colors hover:border-[#C6A15B] hover:bg-[#C6A15B]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C6A15B]"
+            aria-label="Next celebration video"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
         </div>
-      </m.div>
+      )}
     </div>
   );
 }

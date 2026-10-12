@@ -1,15 +1,18 @@
 import * as React from "react";
-import { Navbar } from "@/components/layout/navbar";
-import { HeroSection } from "@/components/sections/hero-section";
-import { TrustStripSection } from "@/components/sections/trust-strip-section";
-import { WhyUsSection } from "@/components/sections/why-us-section";
-import { ServicesSection } from "@/components/sections/services-section";
-import { SignatureFoodSection } from "@/components/sections/signature-food-section";
-import { GallerySection } from "@/components/sections/gallery-section";
-import { TestimonialsSection } from "@/components/sections/testimonials-section";
-import { FAQSection } from "@/components/sections/faq-section";
-import { ContactCTASection } from "@/components/sections/contact-cta-section";
-import { Footer } from "@/components/layout/footer";
+import {
+  Navbar,
+  HeroSection,
+  TrustStripSection,
+  WhyUsSection,
+  ServicesSection,
+  SignatureFoodSection,
+  GallerySection,
+  TestimonialsSection,
+  FAQSection,
+  ContactCTASection,
+  Footer,
+  FloatingWhatsApp,
+} from "@/sections";
 
 export default function HomePage() {
   return (
@@ -18,10 +21,10 @@ export default function HomePage() {
       <Navbar />
 
       <main id="main-content" className="flex-1">
-        {/* 2. Hero */}
+        {/* 2. Hero with Scalable Video Stack */}
         <HeroSection />
 
-        {/* 3. Trust Strip */}
+        {/* 3. Trust Strip Metrics */}
         <TrustStripSection />
 
         {/* 4. Why Choose Shri Ram Caterers */}
@@ -36,18 +39,21 @@ export default function HomePage() {
         {/* 7. Event Gallery */}
         <GallerySection />
 
-        {/* 8. Testimonials */}
+        {/* 8. Verified Reviews & Testimonials */}
         <TestimonialsSection />
 
-        {/* 9. FAQ */}
+        {/* 9. Frequently Asked Questions */}
         <FAQSection />
 
-        {/* 10. Contact CTA */}
+        {/* 10. Contact & Booking CTA */}
         <ContactCTASection />
       </main>
 
       {/* 11. Footer */}
       <Footer />
+
+      {/* 12. Floating WhatsApp Instant Connect */}
+      <FloatingWhatsApp />
     </div>
   );
 }

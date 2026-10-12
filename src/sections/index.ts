@@ -1,0 +1,12 @@
+export { Navbar } from "@/components/layout/navbar";
+export { HeroSection, HeroSection as Hero } from "@/components/sections/hero-section";
+export { TrustStripSection, TrustStripSection as TrustStrip, TrustStripSection as Stats } from "@/components/sections/trust-strip-section";
+export { WhyUsSection, WhyUsSection as WhyUs } from "@/components/sections/why-us-section";
+export { ServicesSection, ServicesSection as Services } from "@/components/sections/services-section";
+export { SignatureFoodSection, SignatureFoodSection as SignatureFood, SignatureFoodSection as Menu } from "@/components/sections/signature-food-section";
+export { GallerySection, GallerySection as Gallery } from "@/components/sections/gallery-section";
+export { TestimonialsSection, TestimonialsSection as Reviews, ReviewsSection } from "@/components/sections/testimonials-section";
+export { FAQSection, FAQSection as FAQ } from "@/components/sections/faq-section";
+export { ContactCTASection, ContactCTASection as BookingCTA } from "@/components/sections/contact-cta-section";
+export { Footer } from "@/components/layout/footer";
+export { FloatingWhatsApp } from "@/components/common/floating-whatsapp";

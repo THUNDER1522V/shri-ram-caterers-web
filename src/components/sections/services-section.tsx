@@ -4,75 +4,13 @@ import * as React from "react";
 import { Container } from "@/components/common/container";
 import { Section } from "@/components/common/section";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Check } from "lucide-react";
+import { Check, ArrowRight } from "lucide-react";
 import { Reveal, RevealItem } from "@/components/ui/reveal";
 import dynamic from "next/dynamic";
+import type { ServicesContent, ServiceItem } from "@/types/services";
+import { servicesContent as defaultServicesContent } from "@/content/services";
 
 const Petals = dynamic(() => import("@/components/Petals"), { ssr: false });
-
-interface ServiceItem {
-  tag: string;
-  title: string;
-  description: string;
-  mediaPlaceholder: string;
-  features: string[];
-  video?: string;
-}
-
-const services: ServiceItem[] = [
-  {
-    tag: "Primary Specialization",
-    title: "Grand Wedding Receptions",
-    description:
-      "Complete luxury wedding banquets designed to honor royal dining traditions with multi-course plated service or grand buffet architecture.",
-    mediaPlaceholder: "Grand Wedding Banquet Setup Photography",
-    video: "/videos/grand-wedding.mp4",
-    features: [
-      "Custom Royal Indian Menus",
-      "Experienced On-Ground Floor Captains",
-      "Dedicated VIP & Family Dining Service",
-    ],
-  },
-  {
-    tag: "Pre-Wedding Celebrations",
-    title: "Sangeet, Mehendi & Cocktails",
-    description:
-      "Vibrant, interactive food experiences featuring artisan street food stations, live grills, and craft mocktails tailored for lively social evenings.",
-    mediaPlaceholder: "Vibrant Sangeet Food Theatre Photography",
-    video: "/videos/v1.mp4",
-    features: [
-      "Artisan Live Chaat & Street Food Bars",
-      "Bespoke Finger Foods & Canapés",
-      "Contemporary Fusion Presentations",
-    ],
-  },
-  {
-    tag: "Signature Culinary Displays",
-    title: "Live Interactive Food Theatres",
-    description:
-      "Theatrical culinary stations where master chefs prepare hot breads, live tandoor specialties, and sizzling regional dishes in front of your guests.",
-    mediaPlaceholder: "Master Chefs at Live Counter Photography",
-    video: "/videos/livecounter.mp4",
-    features: [
-      "Wood-Fired Tandoor & Grill Counters",
-      "Live Regional Dal & Bati Theatres",
-      "Exotic Live Dessert & Jalebi Stations",
-    ],
-  },
-  {
-    tag: "Fresh & Seasonal",
-    title: "Seasonal Dishes",
-    description:
-      "Embrace the flavors of the season with our handcrafted, premium seasonal dishes carefully curated to highlight the freshest ingredients.",
-    mediaPlaceholder: "",
-    video: "/videos/mango.mp4",
-    features: [
-      "Farm-to-table fresh ingredients",
-      "Signature seasonal fruit desserts",
-      "Vibrant and refreshing presentations",
-    ],
-  },
-];
 
 function ServiceMedia({ service }: { service: ServiceItem }) {
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -130,7 +68,7 @@ function ServiceMedia({ service }: { service: ServiceItem }) {
       ) : (
         <div className="flex h-full w-full items-center justify-center p-6 text-center">
           <span className="font-heading text-sm text-muted-foreground">
-            {service.mediaPlaceholder}
+            {service.mediaPlaceholder || service.title}
           </span>
         </div>
       )}
@@ -138,7 +76,17 @@ function ServiceMedia({ service }: { service: ServiceItem }) {
   );
 }
 
-export function ServicesSection() {
+interface ServicesSectionProps {
+  content?: ServicesContent;
+  services?: ServiceItem[];
+}
+
+export function ServicesSection({
+  content = defaultServicesContent,
+  services,
+}: ServicesSectionProps) {
+  const serviceList = services || content.services;
+
   return (
     <Section id="celebrations" className="relative overflow-hidden bg-ivory-300/40">
       {/* Ambient golden petals (background < petals z-[1] < content z-10) */}
@@ -150,25 +98,25 @@ export function ServicesSection() {
         {/* Section Header */}
         <Reveal className="mx-auto max-w-2xl text-center">
           <RevealItem className="inline-block font-heading text-xs uppercase tracking-[0.25em] text-gold-600 md:text-sm">
-            Celebrations We Cater
+            {content.eyebrow}
           </RevealItem>
           <RevealItem>
             <h2 className="mt-3 font-heading text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-              Tailored Dining Experiences for Every Milestone
+              {content.title}
             </h2>
           </RevealItem>
           <RevealItem>
             <p className="mt-4 font-body text-base text-muted-foreground">
-              Whether an intimate pre-wedding gathering of 100 or a magnificent reception of 3,000 guests, our standard remains uncompromising perfection.
+              {content.subtitle}
             </p>
           </RevealItem>
         </Reveal>
 
         {/* Services Grid */}
         <Reveal delay={0.2} staggerChildren={0.1} className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2">
-          {services.map((service, idx) => (
-            <RevealItem key={idx}>
-              <Card className="flex h-full flex-col">
+          {serviceList.map((service, idx) => (
+            <RevealItem key={service.id || idx}>
+              <Card className="group flex h-full flex-col overflow-hidden">
                 <ServiceMedia service={service} />
 
                 <CardHeader className="pb-4">
@@ -181,18 +129,32 @@ export function ServicesSection() {
                 </CardHeader>
 
                 <CardContent className="flex flex-1 flex-col justify-between">
-                  <p className="font-body text-sm leading-relaxed text-muted-foreground md:text-base">
-                    {service.description}
-                  </p>
+                  <div>
+                    <p className="font-body text-sm leading-relaxed text-muted-foreground md:text-base">
+                      {service.description}
+                    </p>
 
-                  <ul className="mt-6 space-y-2.5 border-t border-border pt-4">
-                    {service.features.map((feature, fIdx) => (
-                      <li key={fIdx} className="flex items-center text-sm text-foreground">
-                        <Check className="mr-2.5 h-4 w-4 shrink-0 text-gold-600" aria-hidden="true" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
+                    <ul className="mt-6 space-y-2.5 border-t border-border pt-4">
+                      {service.features.map((feature, fIdx) => (
+                        <li key={fIdx} className="flex items-center text-sm text-foreground">
+                          <Check className="mr-2.5 h-4 w-4 shrink-0 text-gold-600" aria-hidden="true" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {service.buttonText && (
+                    <div className="mt-6 border-t border-border/60 pt-4">
+                      <a
+                        href={service.buttonHref || "#contact"}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-gold-600 transition-colors hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                      >
+                        {service.buttonText}
+                        <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                      </a>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </RevealItem>
