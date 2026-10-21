@@ -1,10 +1,17 @@
-export * from "./hero";
-export * from "./stats";
+/**
+ * Structured Content-Driven System
+ * Phase 2 Content Architecture for Supabase / Headless CMS readiness.
+ */
+export * from "./homepage";
 export * from "./services";
-export * from "./menu";
-export * from "./why-us";
 export * from "./gallery";
 export * from "./reviews";
 export * from "./faq";
-export * from "./contact";
-export * from "./seo";
+export * from "./settings";
+
+// Backward-compatible exports
+export { contactConfig } from "./contact";
+export { statsContent } from "./stats";
+export { menuContent } from "./menu";
+export { whyUsContent } from "./why-us";
+export { seoConfig } from "./seo";

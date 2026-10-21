@@ -10,14 +10,23 @@ export interface BaseReview {
   location?: string;
   quote?: string;
   type: ReviewType;
+  verified?: boolean;
+  avatar?: string;
+  // Video testimonial replacement fields
+  videoUrl?: string;
+  mp4?: string;
+  webm?: string;
+  poster?: string;
+  viewCount?: string;
+  // Image review replacement fields
+  imageSrc?: string;
+  caption?: string;
 }
 
 export interface VideoReviewItem extends BaseReview {
   type: "video";
   poster: string;
   mp4: string;
-  webm?: string;
-  viewCount?: string;
 }
 
 export interface GoogleReviewItem extends BaseReview {
@@ -28,10 +37,10 @@ export interface GoogleReviewItem extends BaseReview {
 export interface ImageReviewItem extends BaseReview {
   type: "image";
   imageSrc: string;
-  caption?: string;
 }
 
-export type ReviewItem = VideoReviewItem | GoogleReviewItem | ImageReviewItem;
+export type ReviewItem = BaseReview;
+export type UnifiedReviewItem = BaseReview;
 
 export interface GoogleReviewSummary {
   rating: number;

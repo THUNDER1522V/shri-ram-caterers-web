@@ -4,9 +4,9 @@ import * as React from "react";
 import { m } from "framer-motion";
 import { MessageCircle, ArrowRight, CalendarCheck } from "lucide-react";
 import dynamic from "next/dynamic";
-import { VideoStack } from "./hero/video-stack";
 import type { HeroContent, HeroVideoItem } from "@/types/hero";
-import { heroContent as defaultHeroContent } from "@/content/hero";
+import { VideoStack } from "./hero/video-stack";
+import { heroContent as defaultHeroContent } from "@/content/homepage";
 import { FADE_UP } from "@/animations/motion";
 
 const MouseGradient = dynamic(() => import("@/components/MouseGradient"), {

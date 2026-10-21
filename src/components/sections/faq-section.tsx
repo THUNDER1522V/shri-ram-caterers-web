@@ -3,9 +3,10 @@
 import * as React from "react";
 import { Container } from "@/components/common/container";
 import { Section } from "@/components/common/section";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
+import { Reveal, RevealItem } from "@/components/ui/reveal";
 import type { FAQContent, FAQItem } from "@/types/faq";
 import { faqContent as defaultFAQContent } from "@/content/faq";
 
@@ -28,49 +29,62 @@ export function FAQSection({
   };
 
   return (
-    <Section id="faq" className="relative overflow-hidden bg-ivory-300/40">
-      {/* Ambient golden petals (background < petals z-[1] < content z-10) */}
+    <Section id="faq" className="relative overflow-hidden bg-[#0B0B0B] py-24 sm:py-32">
+      {/* Soft Maroon Radial Ambient Glow */}
+      <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[650px] w-[650px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#4A0A10]/20 blur-[130px]" />
+
+      {/* Ambient golden petals */}
       <div className="absolute inset-0 z-[1] overflow-hidden pointer-events-none">
         <Petals petalCount={4} dustCount={2} sectionId="faq" />
       </div>
 
       <Container className="relative z-10">
         {/* Section Header */}
-        <div className="mx-auto max-w-2xl text-center">
-          <span className="font-heading text-xs uppercase tracking-[0.25em] text-gold-600 md:text-sm">
+        <Reveal className="mx-auto max-w-3xl text-center">
+          <RevealItem className="inline-flex items-center gap-2 rounded-full border border-[#C6A15B]/30 bg-[#C6A15B]/10 px-3.5 py-1 font-body text-xs font-semibold uppercase tracking-[0.25em] text-[#C6A15B]">
+            <HelpCircle className="h-3.5 w-3.5 text-[#C6A15B]" />
             {content.eyebrow}
-          </span>
-          <h2 className="mt-3 font-heading text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-            {content.title}
-          </h2>
-          <p className="mt-4 font-body text-base text-muted-foreground">
-            {content.subtitle}
-          </p>
-        </div>
+          </RevealItem>
+          <RevealItem>
+            <h2 className="mt-4 font-heading text-3xl font-semibold tracking-tight text-[#E8D6A8] sm:text-4xl md:text-5xl">
+              {content.title}
+            </h2>
+          </RevealItem>
+          <RevealItem>
+            <p className="mt-4 font-body text-base md:text-lg leading-relaxed text-[#E8D6A8]/75">
+              {content.subtitle}
+            </p>
+          </RevealItem>
+        </Reveal>
 
         {/* Accordion Layout */}
-        <div className="mx-auto mt-12 max-w-3xl space-y-4">
+        <Reveal delay={0.2} className="mx-auto mt-14 max-w-3xl space-y-4">
           {faqList.map((faq, idx) => {
             const isOpen = openIndex === idx;
             return (
               <div
                 key={faq.id || idx}
-                className="overflow-hidden rounded-card border border-border bg-card transition-colors duration-200"
+                className={cn(
+                  "overflow-hidden rounded-2xl border transition-all duration-300",
+                  isOpen
+                    ? "border-[#C6A15B] bg-[#140C0E]/90 shadow-[0_4px_24px_rgba(198,161,91,0.15)]"
+                    : "border-[#C6A15B]/25 bg-[#100B0C]/70 hover:border-[#C6A15B]/50"
+                )}
               >
                 <button
                   type="button"
                   onClick={() => toggle(idx)}
-                  className="flex w-full items-center justify-between p-6 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="flex w-full items-center justify-between p-5 sm:p-6 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C6A15B]"
                   aria-expanded={isOpen}
                   aria-controls={`faq-answer-${idx}`}
                 >
-                  <span className="font-heading text-base font-semibold text-foreground md:text-lg">
+                  <span className="font-heading text-base font-semibold text-[#E8D6A8] md:text-lg pr-4">
                     {faq.question}
                   </span>
                   <ChevronDown
                     className={cn(
-                      "ml-4 h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200",
-                      isOpen && "rotate-180 text-gold-600"
+                      "h-5 w-5 shrink-0 text-[#C6A15B] transition-transform duration-300",
+                      isOpen && "rotate-180 text-[#E8D6A8]"
                     )}
                     aria-hidden="true"
                   />
@@ -81,9 +95,9 @@ export function FAQSection({
                     id={`faq-answer-${idx}`}
                     role="region"
                     aria-labelledby={`faq-question-${idx}`}
-                    className="border-t border-border px-6 pb-6 pt-4"
+                    className="border-t border-[#C6A15B]/15 px-5 sm:px-6 pb-6 pt-4"
                   >
-                    <p className="font-body text-sm leading-relaxed text-muted-foreground md:text-base">
+                    <p className="font-body text-sm sm:text-base leading-relaxed text-[#E8D6A8]/80">
                       {faq.answer}
                     </p>
                   </div>
@@ -91,8 +105,10 @@ export function FAQSection({
               </div>
             );
           })}
-        </div>
+        </Reveal>
       </Container>
     </Section>
   );
 }
+
+export default FAQSection;

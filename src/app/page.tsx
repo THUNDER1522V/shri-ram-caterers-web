@@ -3,11 +3,14 @@ import {
   Navbar,
   HeroSection,
   TrustStripSection,
-  WhyUsSection,
-  ServicesSection,
-  SignatureFoodSection,
+  LegacySection,
+  CelebrationsSection,
+  CuisineSection,
+  LiveCountersSection,
   GallerySection,
+  GoogleReviewsSection,
   TestimonialsSection,
+  ProcessSection,
   FAQSection,
   ContactCTASection,
   Footer,
@@ -16,43 +19,52 @@ import {
 
 export default function HomePage() {
   return (
-    <div className="flex min-h-screen flex-col">
-      {/* 1. Navbar */}
+    <div className="flex min-h-screen flex-col bg-[#0B0B0B] text-[#E8D6A8]">
+      {/* Sticky Navigation with Luxury Active Indicator */}
       <Navbar />
 
       <main id="main-content" className="flex-1">
-        {/* 2. Hero with Scalable Video Stack */}
+        {/* 1. Hero with Scalable Video Stack */}
         <HeroSection />
 
-        {/* 3. Trust Strip Metrics */}
+        {/* 2. Trust Strip */}
         <TrustStripSection />
 
-        {/* 4. Why Choose Shri Ram Caterers */}
-        <WhyUsSection />
+        {/* 3. Legacy */}
+        <LegacySection />
 
-        {/* 5. Catering Services */}
-        <ServicesSection />
+        {/* 4. Celebrations */}
+        <CelebrationsSection />
 
-        {/* 6. Signature Food & Royal Menus */}
-        <SignatureFoodSection />
+        {/* 5. Cuisine */}
+        <CuisineSection />
 
-        {/* 7. Event Gallery */}
+        {/* 6. Live Counters */}
+        <LiveCountersSection />
+
+        {/* 7. Gallery */}
         <GallerySection />
 
-        {/* 8. Verified Reviews & Testimonials */}
+        {/* 8. Google Reviews */}
+        <GoogleReviewsSection />
+
+        {/* 9. Testimonials (Video Coverflow) */}
         <TestimonialsSection />
 
-        {/* 9. Frequently Asked Questions */}
+        {/* 10. Process */}
+        <ProcessSection />
+
+        {/* 11. FAQ */}
         <FAQSection />
 
-        {/* 10. Contact & Booking CTA */}
+        {/* 12. Contact */}
         <ContactCTASection />
       </main>
 
-      {/* 11. Footer */}
+      {/* 13. Footer */}
       <Footer />
 
-      {/* 12. Floating WhatsApp Instant Connect */}
+      {/* Floating WhatsApp Instant Connect */}
       <FloatingWhatsApp />
     </div>
   );

@@ -1,15 +1,24 @@
+export type HeroMediaType = "video" | "image" | "youtube" | "instagram";
+
 export interface HeroVideoItem {
   id: string;
+  type?: HeroMediaType;
   title: string;
   subtitle?: string;
   guests?: string;
   location?: string;
   poster: string;
-  mp4: string;
+  src?: string;
+  mp4?: string;
   webm?: string;
+  youtubeId?: string;
+  instagramUrl?: string;
   ariaLabel?: string;
   badge?: string;
 }
+
+export type HeroMediaItem = HeroVideoItem;
+
 
 export interface HeroTrustPill {
   stat: string;

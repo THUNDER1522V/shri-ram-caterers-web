@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { MessageCircle } from "lucide-react";
-import { contactConfig } from "@/content/contact";
+import { siteSettings } from "@/content/settings";
 import { cn } from "@/lib/utils";
 
 interface FloatingWhatsAppProps {
@@ -12,7 +12,7 @@ interface FloatingWhatsAppProps {
 }
 
 export function FloatingWhatsApp({
-  href = contactConfig.links.whatsapp,
+  href = siteSettings.socials.whatsapp,
   className,
   label = "Chat with our Catering Directors",
 }: FloatingWhatsAppProps) {

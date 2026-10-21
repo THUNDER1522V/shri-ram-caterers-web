@@ -7,7 +7,7 @@ import { Reveal, RevealItem } from "@/components/ui/reveal";
 import { CountUp } from "@/components/ui/count-up";
 import dynamic from "next/dynamic";
 import type { TrustMetric } from "@/types/stats";
-import { statsContent } from "@/content/stats";
+import { trustStripContent as defaultTrustStripContent } from "@/content/homepage";
 
 const Petals = dynamic(() => import("@/components/Petals"), { ssr: false });
 
@@ -25,8 +25,8 @@ interface TrustStripSectionProps {
 }
 
 export function TrustStripSection({
-  items = statsContent.metrics,
-  eyebrow = statsContent.eyebrow,
+  items = defaultTrustStripContent.metrics,
+  eyebrow = defaultTrustStripContent.eyebrow,
 }: TrustStripSectionProps) {
   return (
     <section

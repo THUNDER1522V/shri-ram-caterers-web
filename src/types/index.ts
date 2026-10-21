@@ -9,6 +9,8 @@ export * from "./faq";
 export * from "./contact";
 export * from "./navigation";
 export * from "./seo";
+export * from "./settings";
+
 
 export interface SiteConfig {
   name: string;
