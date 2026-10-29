@@ -19,6 +19,14 @@
 --
 -- ============================================================================
 
+CREATE SCHEMA IF NOT EXISTS extensions;
+DO $$ 
+BEGIN 
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN 
+        GRANT USAGE ON SCHEMA extensions TO anon, authenticated, service_role; 
+    END IF; 
+END $$;
+
 -- ----------------------------------------------------------------------------
 -- 1. UUID GENERATION: uuid-ossp
 -- ----------------------------------------------------------------------------
@@ -28,7 +36,7 @@
 -- Role in HospiOS:
 -- Primary keys across all tenant-isolated entities use UUIDv4 to eliminate ID
 -- enumeration attacks across tenants and allow distributed ID generation.
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA extensions;
 
 -- ----------------------------------------------------------------------------
 -- 2. CRYPTOGRAPHIC SECURITY: pgcrypto
@@ -41,7 +49,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- - Webhook Security: HMAC-SHA256 signature generation for webhook deliveries
 -- - Privacy Analytics: Salted daily hashing for cookie-less visitor sessions (analytics_sessions)
 -- - Plugin System: Encrypted credential storage for Stripe, Razorpay & WhatsApp tokens
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto" WITH SCHEMA extensions;
 
 -- ----------------------------------------------------------------------------
 -- 3. FUZZY & SIMILARITY SEARCH: pg_trgm
@@ -55,7 +63,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- - CRM & Leads: High-speed substring searches across guest names, phone numbers,
 --   event venues, and cities without requiring external search clusters
 -- - Media DAM: Fuzzy matching over photo tags, event locations, and captions
-CREATE EXTENSION IF NOT EXISTS "pg_trgm";
+CREATE EXTENSION IF NOT EXISTS "pg_trgm" WITH SCHEMA extensions;
 
 -- ----------------------------------------------------------------------------
 -- 4. TEXT NORMALIZATION: unaccent
@@ -67,7 +75,7 @@ CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 -- terminology (e.g. "Flambé", "Crème Brûlée", "Café", "Pâtisserie").
 -- unaccent ensures guests searching with standard keyboards ("flambe", "creme")
 -- achieve instantaneous, accurate matches.
-CREATE EXTENSION IF NOT EXISTS "unaccent";
+CREATE EXTENSION IF NOT EXISTS "unaccent" WITH SCHEMA extensions;
 
 -- ----------------------------------------------------------------------------
 -- 5. COMPOSITE GIN MULTI-TENANCY INDEXING: btree_gin
@@ -82,7 +90,7 @@ CREATE EXTENSION IF NOT EXISTS "unaccent";
 -- With btree_gin, we can execute:
 --   CREATE INDEX ... ON menu_items USING GIN (tenant_id, name gin_trgm_ops);
 -- guaranteeing sub-millisecond multi-tenant filtered search.
-CREATE EXTENSION IF NOT EXISTS "btree_gin";
+CREATE EXTENSION IF NOT EXISTS "btree_gin" WITH SCHEMA extensions;
 
 -- ----------------------------------------------------------------------------
 -- 6. AI VECTOR EMBEDDINGS: vector (pgvector)
@@ -97,7 +105,7 @@ CREATE EXTENSION IF NOT EXISTS "btree_gin";
 -- - VIP Guest Taste Profiling: Clustering past client dietary preferences to
 --   recommend bespoke tasting menus
 -- - Automated Review Sentiment: Semantic analysis of client feedback and reviews
-CREATE EXTENSION IF NOT EXISTS "vector";
+CREATE EXTENSION IF NOT EXISTS "vector" WITH SCHEMA extensions;
 
 -- ============================================================================
 -- END OF MIGRATION 0001

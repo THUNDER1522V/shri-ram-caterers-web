@@ -30,19 +30,23 @@
 -- 11. form_fields
 -- 12. form_submissions
 --
--- STANDARDS ENFORCED:
--- - UUIDv4 Primary Keys (gen_random_uuid())
--- - Foreign key cascades and safe nullifications
--- - Row Level Security (RLS) on all 12 tables
--- - Multi-column composite B-Tree indexes
--- - Automatic updated_at triggers
--- - Comprehensive table and column comments
+-- ARCHITECTURAL PHASES ENFORCED:
+-- Phase A: Create Tables (strict topological creation order)
+-- Phase B: Foreign Keys (deferred constraints if applicable)
+-- Phase C: Indexes (B-tree, unique partial, and composite indexes)
+-- Phase D: Triggers (automatic updated_at maintenance)
+-- Phase E: Enable RLS (Row Level Security activation across all tables)
+-- Phase F: Policies (idempotent multi-tenant security policies)
+-- Phase G: Comments (comprehensive table and column documentation)
+-- ============================================================================
+
+-- ============================================================================
+-- PHASE A: CREATE TABLES
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
 -- TABLE 1: themes
 -- ----------------------------------------------------------------------------
--- Saved visual design systems (colors, typography, border radii, glassmorphism).
 CREATE TABLE IF NOT EXISTS themes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
@@ -60,51 +64,9 @@ CREATE TABLE IF NOT EXISTS themes (
     deleted_at TIMESTAMPTZ NULL
 );
 
--- Comments
-COMMENT ON TABLE themes IS 'Database-driven CSS variable token sets for real-time white-label branding.';
-COMMENT ON COLUMN themes.color_tokens IS 'JSON map of HSL/Hex color tokens (primary, secondary, gold accents, dark surfaces).';
-COMMENT ON COLUMN themes.is_active IS 'Flag indicating active theme currently rendered on public website.';
-
--- Indexes
-CREATE INDEX IF NOT EXISTS idx_themes_tenant_active 
-ON themes (tenant_id, is_active) 
-WHERE deleted_at IS NULL AND is_active = true;
-
--- Trigger: updated_at
-CREATE TRIGGER trg_themes_updated_at
-BEFORE UPDATE ON themes
-FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- Row Level Security
-ALTER TABLE themes ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Public read for active tenant themes"
-ON themes FOR SELECT
-TO anon, authenticated
-USING (
-    deleted_at IS NULL 
-    AND tenant_id IN (
-        SELECT id FROM tenants WHERE status = 'active' AND deleted_at IS NULL
-    )
-);
-
-CREATE POLICY "Staff can manage themes"
-ON themes FOR ALL
-TO authenticated
-USING (
-    tenant_id IN (
-        SELECT tm.tenant_id 
-        FROM tenant_members tm 
-        WHERE tm.user_id = auth.uid() 
-          AND tm.role IN ('owner', 'general_manager', 'content_editor')
-          AND tm.is_active = true
-    )
-);
-
 -- ----------------------------------------------------------------------------
 -- TABLE 2: seo_metadata
 -- ----------------------------------------------------------------------------
--- Granular Open Graph, Twitter Cards, Schema.org JSON-LD, and robots directives.
 CREATE TABLE IF NOT EXISTS seo_metadata (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
@@ -129,48 +91,9 @@ CREATE TABLE IF NOT EXISTS seo_metadata (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Comments
-COMMENT ON TABLE seo_metadata IS 'Search engine optimization, social cards, and Schema.org structured data.';
-COMMENT ON COLUMN seo_metadata.structured_data_json IS 'Schema.org JSON-LD payload (FoodEstablishment, LocalBusiness, Event).';
-
--- Indexes
-CREATE INDEX IF NOT EXISTS idx_seo_metadata_tenant_id 
-ON seo_metadata (tenant_id);
-
--- Trigger: updated_at
-CREATE TRIGGER trg_seo_metadata_updated_at
-BEFORE UPDATE ON seo_metadata
-FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- Row Level Security
-ALTER TABLE seo_metadata ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Public read for active tenant SEO metadata"
-ON seo_metadata FOR SELECT
-TO anon, authenticated
-USING (
-    tenant_id IN (
-        SELECT id FROM tenants WHERE status = 'active' AND deleted_at IS NULL
-    )
-);
-
-CREATE POLICY "Staff can manage SEO metadata"
-ON seo_metadata FOR ALL
-TO authenticated
-USING (
-    tenant_id IN (
-        SELECT tm.tenant_id 
-        FROM tenant_members tm 
-        WHERE tm.user_id = auth.uid() 
-          AND tm.role IN ('owner', 'general_manager', 'content_editor')
-          AND tm.is_active = true
-    )
-);
-
 -- ----------------------------------------------------------------------------
 -- TABLE 3: cms_pages
 -- ----------------------------------------------------------------------------
--- Page registry for homepage, sub-pages, service hubs, and campaign landings.
 CREATE TABLE IF NOT EXISTS cms_pages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
@@ -189,59 +112,12 @@ CREATE TABLE IF NOT EXISTS cms_pages (
     deleted_at TIMESTAMPTZ NULL,
 
     -- Constraints
-    CONSTRAINT chk_cms_pages_slug CHECK (slug ~ '^[a-z0-9\/-]+$')
-);
-
--- Comments
-COMMENT ON TABLE cms_pages IS 'Dynamic page registry supporting scheduling and multi-page site architectures.';
-COMMENT ON COLUMN cms_pages.slug IS 'Route slug (e.g. "/" for home, "/weddings", "/tasting-room").';
-COMMENT ON COLUMN cms_pages.is_home IS 'Flag identifying the root homepage of the tenant domain.';
-
--- Indexes
-CREATE UNIQUE INDEX IF NOT EXISTS idx_cms_pages_tenant_slug 
-ON cms_pages (tenant_id, LOWER(slug)) 
-WHERE deleted_at IS NULL;
-
-CREATE INDEX IF NOT EXISTS idx_cms_pages_status 
-ON cms_pages (tenant_id, status) 
-WHERE deleted_at IS NULL;
-
--- Trigger: updated_at
-CREATE TRIGGER trg_cms_pages_updated_at
-BEFORE UPDATE ON cms_pages
-FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- Row Level Security
-ALTER TABLE cms_pages ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Public read for published CMS pages"
-ON cms_pages FOR SELECT
-TO anon, authenticated
-USING (
-    deleted_at IS NULL 
-    AND status = 'published' 
-    AND tenant_id IN (
-        SELECT id FROM tenants WHERE status = 'active' AND deleted_at IS NULL
-    )
-);
-
-CREATE POLICY "Staff can manage CMS pages"
-ON cms_pages FOR ALL
-TO authenticated
-USING (
-    tenant_id IN (
-        SELECT tm.tenant_id 
-        FROM tenant_members tm 
-        WHERE tm.user_id = auth.uid() 
-          AND tm.role IN ('owner', 'general_manager', 'content_editor')
-          AND tm.is_active = true
-    )
+    CONSTRAINT chk_cms_pages_slug CHECK (slug ~ '^[a-z0-9/-]+$')
 );
 
 -- ----------------------------------------------------------------------------
 -- TABLE 4: cms_sections
 -- ----------------------------------------------------------------------------
--- Reorderable, configurable section slices composing dynamic CMS pages.
 CREATE TABLE IF NOT EXISTS cms_sections (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
@@ -259,58 +135,9 @@ CREATE TABLE IF NOT EXISTS cms_sections (
     deleted_at TIMESTAMPTZ NULL
 );
 
--- Comments
-COMMENT ON TABLE cms_sections IS 'Composable visual layout slices (hero, culinary, reviews, form) per page.';
-COMMENT ON COLUMN cms_sections.section_type IS 'Component key matching registered UI components (e.g. hero_stack, culinary_grid).';
-COMMENT ON COLUMN cms_sections.content_payload IS 'JSON data payload containing text copy, badges, and layout parameters.';
-
--- Indexes
-CREATE INDEX IF NOT EXISTS idx_cms_sections_page_order 
-ON cms_sections (page_id, display_order) 
-WHERE deleted_at IS NULL AND is_visible = true;
-
-CREATE INDEX IF NOT EXISTS idx_cms_sections_tenant_id 
-ON cms_sections (tenant_id) 
-WHERE deleted_at IS NULL;
-
--- Trigger: updated_at
-CREATE TRIGGER trg_cms_sections_updated_at
-BEFORE UPDATE ON cms_sections
-FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- Row Level Security
-ALTER TABLE cms_sections ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Public read for visible sections on published pages"
-ON cms_sections FOR SELECT
-TO anon, authenticated
-USING (
-    deleted_at IS NULL 
-    AND is_visible = true 
-    AND page_id IN (
-        SELECT p.id 
-        FROM cms_pages p 
-        WHERE p.deleted_at IS NULL AND p.status = 'published'
-    )
-);
-
-CREATE POLICY "Staff can manage CMS sections"
-ON cms_sections FOR ALL
-TO authenticated
-USING (
-    tenant_id IN (
-        SELECT tm.tenant_id 
-        FROM tenant_members tm 
-        WHERE tm.user_id = auth.uid() 
-          AND tm.role IN ('owner', 'general_manager', 'content_editor')
-          AND tm.is_active = true
-    )
-);
-
 -- ----------------------------------------------------------------------------
 -- TABLE 5: cms_dynamic_blocks
 -- ----------------------------------------------------------------------------
--- Reusable global widgets shared across multiple pages (e.g. Award Strip, Callouts).
 CREATE TABLE IF NOT EXISTS cms_dynamic_blocks (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
@@ -323,50 +150,9 @@ CREATE TABLE IF NOT EXISTS cms_dynamic_blocks (
     deleted_at TIMESTAMPTZ NULL
 );
 
--- Comments
-COMMENT ON TABLE cms_dynamic_blocks IS 'Global reusable blocks embedded across multiple pages without duplication.';
-
--- Indexes
-CREATE INDEX IF NOT EXISTS idx_cms_dynamic_blocks_tenant 
-ON cms_dynamic_blocks (tenant_id, is_active) 
-WHERE deleted_at IS NULL;
-
--- Trigger: updated_at
-CREATE TRIGGER trg_cms_dynamic_blocks_updated_at
-BEFORE UPDATE ON cms_dynamic_blocks
-FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- Row Level Security
-ALTER TABLE cms_dynamic_blocks ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Public read for active dynamic blocks"
-ON cms_dynamic_blocks FOR SELECT
-TO anon, authenticated
-USING (
-    deleted_at IS NULL 
-    AND is_active = true 
-    AND tenant_id IN (
-        SELECT id FROM tenants WHERE status = 'active' AND deleted_at IS NULL
-    )
-);
-
-CREATE POLICY "Staff can manage dynamic blocks"
-ON cms_dynamic_blocks FOR ALL
-TO authenticated
-USING (
-    tenant_id IN (
-        SELECT tm.tenant_id 
-        FROM tenant_members tm 
-        WHERE tm.user_id = auth.uid() 
-          AND tm.role IN ('owner', 'general_manager', 'content_editor')
-          AND tm.is_active = true
-    )
-);
-
 -- ----------------------------------------------------------------------------
 -- TABLE 6: hero_campaigns
 -- ----------------------------------------------------------------------------
--- Scheduled seasonal hero experiences (Wedding Season, Diwali Gala, Summer Soirees).
 CREATE TABLE IF NOT EXISTS hero_campaigns (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
@@ -390,51 +176,9 @@ CREATE TABLE IF NOT EXISTS hero_campaigns (
     CONSTRAINT chk_hero_campaigns_slug CHECK (slug ~ '^[a-z0-9-]+$')
 );
 
--- Comments
-COMMENT ON TABLE hero_campaigns IS 'Hero presentation campaigns supporting multi-slide covers and scheduling.';
-COMMENT ON COLUMN hero_campaigns.priority IS 'Higher priority score overrides default hero when active.';
-
--- Indexes
-CREATE INDEX IF NOT EXISTS idx_hero_campaigns_priority 
-ON hero_campaigns (tenant_id, priority DESC) 
-WHERE deleted_at IS NULL AND is_active = true;
-
--- Trigger: updated_at
-CREATE TRIGGER trg_hero_campaigns_updated_at
-BEFORE UPDATE ON hero_campaigns
-FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- Row Level Security
-ALTER TABLE hero_campaigns ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Public read for active hero campaigns"
-ON hero_campaigns FOR SELECT
-TO anon, authenticated
-USING (
-    deleted_at IS NULL 
-    AND is_active = true 
-    AND tenant_id IN (
-        SELECT id FROM tenants WHERE status = 'active' AND deleted_at IS NULL
-    )
-);
-
-CREATE POLICY "Staff can manage hero campaigns"
-ON hero_campaigns FOR ALL
-TO authenticated
-USING (
-    tenant_id IN (
-        SELECT tm.tenant_id 
-        FROM tenant_members tm 
-        WHERE tm.user_id = auth.uid() 
-          AND tm.role IN ('owner', 'general_manager', 'content_editor')
-          AND tm.is_active = true
-    )
-);
-
 -- ----------------------------------------------------------------------------
 -- TABLE 7: hero_slides
 -- ----------------------------------------------------------------------------
--- Multi-media vertical videos, YouTube, Instagram Reels, and photo cards.
 CREATE TABLE IF NOT EXISTS hero_slides (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     hero_campaign_id UUID NOT NULL REFERENCES hero_campaigns(id) ON DELETE CASCADE,
@@ -456,51 +200,9 @@ CREATE TABLE IF NOT EXISTS hero_slides (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Comments
-COMMENT ON TABLE hero_slides IS 'Individual media cards, 4K vertical videos, and CTAs in 3D stacked coverflow.';
-
--- Indexes
-CREATE INDEX IF NOT EXISTS idx_hero_slides_campaign_order 
-ON hero_slides (hero_campaign_id, display_order) 
-WHERE is_active = true;
-
--- Trigger: updated_at
-CREATE TRIGGER trg_hero_slides_updated_at
-BEFORE UPDATE ON hero_slides
-FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- Row Level Security
-ALTER TABLE hero_slides ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Public read for active hero slides"
-ON hero_slides FOR SELECT
-TO anon, authenticated
-USING (
-    is_active = true 
-    AND hero_campaign_id IN (
-        SELECT hc.id 
-        FROM hero_campaigns hc 
-        WHERE hc.deleted_at IS NULL AND hc.is_active = true
-    )
-);
-
-CREATE POLICY "Staff can manage hero slides"
-ON hero_slides FOR ALL
-TO authenticated
-USING (
-    tenant_id IN (
-        SELECT tm.tenant_id 
-        FROM tenant_members tm 
-        WHERE tm.user_id = auth.uid() 
-          AND tm.role IN ('owner', 'general_manager', 'content_editor')
-          AND tm.is_active = true
-    )
-);
-
 -- ----------------------------------------------------------------------------
 -- TABLE 8: navigation_menus
 -- ----------------------------------------------------------------------------
--- Menu containers mapped to site zones (Header, Footer Col 1, Mobile Drawer).
 CREATE TABLE IF NOT EXISTS navigation_menus (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
@@ -514,44 +216,9 @@ CREATE TABLE IF NOT EXISTS navigation_menus (
     CONSTRAINT uq_navigation_menus_tenant_location UNIQUE (tenant_id, location)
 );
 
--- Comments
-COMMENT ON TABLE navigation_menus IS 'Navigation containers assigned to layout zones (header, footers, mobile drawer).';
-
--- Trigger: updated_at
-CREATE TRIGGER trg_navigation_menus_updated_at
-BEFORE UPDATE ON navigation_menus
-FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- Row Level Security
-ALTER TABLE navigation_menus ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Public read for active navigation menus"
-ON navigation_menus FOR SELECT
-TO anon, authenticated
-USING (
-    is_active = true 
-    AND tenant_id IN (
-        SELECT id FROM tenants WHERE status = 'active' AND deleted_at IS NULL
-    )
-);
-
-CREATE POLICY "Staff can manage navigation menus"
-ON navigation_menus FOR ALL
-TO authenticated
-USING (
-    tenant_id IN (
-        SELECT tm.tenant_id 
-        FROM tenant_members tm 
-        WHERE tm.user_id = auth.uid() 
-          AND tm.role IN ('owner', 'general_manager', 'content_editor')
-          AND tm.is_active = true
-    )
-);
-
 -- ----------------------------------------------------------------------------
 -- TABLE 9: navigation_items
 -- ----------------------------------------------------------------------------
--- Recursive multi-level menu items supporting page links, anchors, and CTA buttons.
 CREATE TABLE IF NOT EXISTS navigation_items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     menu_id UUID NOT NULL REFERENCES navigation_menus(id) ON DELETE CASCADE,
@@ -572,51 +239,9 @@ CREATE TABLE IF NOT EXISTS navigation_items (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Comments
-COMMENT ON TABLE navigation_items IS 'Hierarchical navigation items with self-referencing parent_id for dropdown menus.';
-
--- Indexes
-CREATE INDEX IF NOT EXISTS idx_navigation_items_menu_order 
-ON navigation_items (menu_id, parent_id, display_order) 
-WHERE is_visible = true;
-
--- Trigger: updated_at
-CREATE TRIGGER trg_navigation_items_updated_at
-BEFORE UPDATE ON navigation_items
-FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- Row Level Security
-ALTER TABLE navigation_items ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Public read for visible navigation items"
-ON navigation_items FOR SELECT
-TO anon, authenticated
-USING (
-    is_visible = true 
-    AND menu_id IN (
-        SELECT nm.id 
-        FROM navigation_menus nm 
-        WHERE nm.is_active = true
-    )
-);
-
-CREATE POLICY "Staff can manage navigation items"
-ON navigation_items FOR ALL
-TO authenticated
-USING (
-    tenant_id IN (
-        SELECT tm.tenant_id 
-        FROM tenant_members tm 
-        WHERE tm.user_id = auth.uid() 
-          AND tm.role IN ('owner', 'general_manager', 'content_editor')
-          AND tm.is_active = true
-    )
-);
-
 -- ----------------------------------------------------------------------------
 -- TABLE 10: forms
 -- ----------------------------------------------------------------------------
--- Reusable dynamic form definitions (Inquiries, Tasting Requests, Careers).
 CREATE TABLE IF NOT EXISTS forms (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
@@ -639,50 +264,9 @@ CREATE TABLE IF NOT EXISTS forms (
     CONSTRAINT chk_forms_slug CHECK (slug ~ '^[a-z0-9-]+$')
 );
 
--- Comments
-COMMENT ON TABLE forms IS 'Dynamic form definitions supporting inquiries, tastings, quotes, and careers.';
-
--- Indexes
-CREATE UNIQUE INDEX IF NOT EXISTS idx_forms_tenant_slug 
-ON forms (tenant_id, LOWER(slug)) 
-WHERE deleted_at IS NULL;
-
--- Trigger: updated_at
-CREATE TRIGGER trg_forms_updated_at
-BEFORE UPDATE ON forms
-FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- Row Level Security
-ALTER TABLE forms ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Public read for active forms"
-ON forms FOR SELECT
-TO anon, authenticated
-USING (
-    deleted_at IS NULL 
-    AND is_active = true 
-    AND tenant_id IN (
-        SELECT id FROM tenants WHERE status = 'active' AND deleted_at IS NULL
-    )
-);
-
-CREATE POLICY "Staff can manage forms"
-ON forms FOR ALL
-TO authenticated
-USING (
-    tenant_id IN (
-        SELECT tm.tenant_id 
-        FROM tenant_members tm 
-        WHERE tm.user_id = auth.uid() 
-          AND tm.role IN ('owner', 'general_manager', 'content_editor')
-          AND tm.is_active = true
-    )
-);
-
 -- ----------------------------------------------------------------------------
 -- TABLE 11: form_fields
 -- ----------------------------------------------------------------------------
--- Dynamic field configurations per form (inputs, dates, range sliders, selects).
 CREATE TABLE IF NOT EXISTS form_fields (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     form_id UUID NOT NULL REFERENCES forms(id) ON DELETE CASCADE,
@@ -706,49 +290,9 @@ CREATE TABLE IF NOT EXISTS form_fields (
     CONSTRAINT chk_form_fields_width CHECK (column_width IN ('full', 'half', 'third'))
 );
 
--- Comments
-COMMENT ON TABLE form_fields IS 'Dynamic field schema, validation rules, and layout options per form.';
-
--- Indexes
-CREATE INDEX IF NOT EXISTS idx_form_fields_form_order 
-ON form_fields (form_id, display_order);
-
--- Trigger: updated_at
-CREATE TRIGGER trg_form_fields_updated_at
-BEFORE UPDATE ON form_fields
-FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- Row Level Security
-ALTER TABLE form_fields ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Public read for fields of active forms"
-ON form_fields FOR SELECT
-TO anon, authenticated
-USING (
-    form_id IN (
-        SELECT f.id 
-        FROM forms f 
-        WHERE f.deleted_at IS NULL AND f.is_active = true
-    )
-);
-
-CREATE POLICY "Staff can manage form fields"
-ON form_fields FOR ALL
-TO authenticated
-USING (
-    tenant_id IN (
-        SELECT tm.tenant_id 
-        FROM tenant_members tm 
-        WHERE tm.user_id = auth.uid() 
-          AND tm.role IN ('owner', 'general_manager', 'content_editor')
-          AND tm.is_active = true
-    )
-);
-
 -- ----------------------------------------------------------------------------
 -- TABLE 12: form_submissions
 -- ----------------------------------------------------------------------------
--- Raw response payload repository for all user form submissions.
 CREATE TABLE IF NOT EXISTS form_submissions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     form_id UUID NOT NULL REFERENCES forms(id) ON DELETE CASCADE,
@@ -768,10 +312,77 @@ CREATE TABLE IF NOT EXISTS form_submissions (
     deleted_at TIMESTAMPTZ NULL
 );
 
--- Comments
-COMMENT ON TABLE form_submissions IS 'Raw JSON submission payloads with UTM campaign tracking and CRM conversion hooks.';
+-- ============================================================================
+-- PHASE B: FOREIGN KEYS (DEFERRED)
+-- ============================================================================
+-- All CMS, page builder, hero, navigation, and form foreign keys are resolved
+-- in Phase A creation order without circular dependencies.
 
--- Indexes
+-- ============================================================================
+-- PHASE C: INDEXES
+-- ============================================================================
+
+-- themes indexes
+CREATE INDEX IF NOT EXISTS idx_themes_tenant_active 
+ON themes (tenant_id, is_active) 
+WHERE deleted_at IS NULL AND is_active = true;
+
+-- seo_metadata indexes
+CREATE INDEX IF NOT EXISTS idx_seo_metadata_tenant_id 
+ON seo_metadata (tenant_id);
+
+-- cms_pages indexes
+CREATE UNIQUE INDEX IF NOT EXISTS idx_cms_pages_tenant_slug 
+ON cms_pages (tenant_id, LOWER(slug)) 
+WHERE deleted_at IS NULL;
+
+CREATE INDEX IF NOT EXISTS idx_cms_pages_status 
+ON cms_pages (tenant_id, status) 
+WHERE deleted_at IS NULL;
+
+-- cms_sections indexes
+CREATE INDEX IF NOT EXISTS idx_cms_sections_page_order 
+ON cms_sections (page_id, display_order) 
+WHERE deleted_at IS NULL AND is_visible = true;
+
+CREATE INDEX IF NOT EXISTS idx_cms_sections_tenant_id 
+ON cms_sections (tenant_id) 
+WHERE deleted_at IS NULL;
+
+-- cms_dynamic_blocks indexes
+CREATE INDEX IF NOT EXISTS idx_cms_dynamic_blocks_tenant 
+ON cms_dynamic_blocks (tenant_id, is_active) 
+WHERE deleted_at IS NULL;
+
+-- hero_campaigns indexes
+CREATE UNIQUE INDEX IF NOT EXISTS idx_hero_campaigns_tenant_slug
+ON hero_campaigns (tenant_id, LOWER(slug))
+WHERE deleted_at IS NULL;
+
+CREATE INDEX IF NOT EXISTS idx_hero_campaigns_priority 
+ON hero_campaigns (tenant_id, priority DESC) 
+WHERE deleted_at IS NULL AND is_active = true;
+
+-- hero_slides indexes
+CREATE INDEX IF NOT EXISTS idx_hero_slides_campaign_order 
+ON hero_slides (hero_campaign_id, display_order) 
+WHERE is_active = true;
+
+-- navigation_items indexes
+CREATE INDEX IF NOT EXISTS idx_navigation_items_menu_order 
+ON navigation_items (menu_id, parent_id, display_order) 
+WHERE is_visible = true;
+
+-- forms indexes
+CREATE UNIQUE INDEX IF NOT EXISTS idx_forms_tenant_slug 
+ON forms (tenant_id, LOWER(slug)) 
+WHERE deleted_at IS NULL;
+
+-- form_fields indexes
+CREATE INDEX IF NOT EXISTS idx_form_fields_form_order 
+ON form_fields (form_id, display_order);
+
+-- form_submissions indexes
 CREATE INDEX IF NOT EXISTS idx_form_submissions_form_status 
 ON form_submissions (form_id, status, created_at DESC) 
 WHERE deleted_at IS NULL;
@@ -780,15 +391,390 @@ CREATE INDEX IF NOT EXISTS idx_form_submissions_tenant_created
 ON form_submissions (tenant_id, created_at DESC) 
 WHERE deleted_at IS NULL;
 
--- Trigger: updated_at
+-- ============================================================================
+-- PHASE D: TRIGGERS
+-- ============================================================================
+
+DROP TRIGGER IF EXISTS trg_themes_updated_at ON themes;
+CREATE TRIGGER trg_themes_updated_at
+BEFORE UPDATE ON themes
+FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_seo_metadata_updated_at ON seo_metadata;
+CREATE TRIGGER trg_seo_metadata_updated_at
+BEFORE UPDATE ON seo_metadata
+FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_cms_pages_updated_at ON cms_pages;
+CREATE TRIGGER trg_cms_pages_updated_at
+BEFORE UPDATE ON cms_pages
+FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_cms_sections_updated_at ON cms_sections;
+CREATE TRIGGER trg_cms_sections_updated_at
+BEFORE UPDATE ON cms_sections
+FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_cms_dynamic_blocks_updated_at ON cms_dynamic_blocks;
+CREATE TRIGGER trg_cms_dynamic_blocks_updated_at
+BEFORE UPDATE ON cms_dynamic_blocks
+FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_hero_campaigns_updated_at ON hero_campaigns;
+CREATE TRIGGER trg_hero_campaigns_updated_at
+BEFORE UPDATE ON hero_campaigns
+FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_hero_slides_updated_at ON hero_slides;
+CREATE TRIGGER trg_hero_slides_updated_at
+BEFORE UPDATE ON hero_slides
+FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_navigation_menus_updated_at ON navigation_menus;
+CREATE TRIGGER trg_navigation_menus_updated_at
+BEFORE UPDATE ON navigation_menus
+FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_navigation_items_updated_at ON navigation_items;
+CREATE TRIGGER trg_navigation_items_updated_at
+BEFORE UPDATE ON navigation_items
+FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_forms_updated_at ON forms;
+CREATE TRIGGER trg_forms_updated_at
+BEFORE UPDATE ON forms
+FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_form_fields_updated_at ON form_fields;
+CREATE TRIGGER trg_form_fields_updated_at
+BEFORE UPDATE ON form_fields
+FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_form_submissions_updated_at ON form_submissions;
 CREATE TRIGGER trg_form_submissions_updated_at
 BEFORE UPDATE ON form_submissions
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Row Level Security
+-- ============================================================================
+-- PHASE E: ENABLE ROW LEVEL SECURITY
+-- ============================================================================
+
+ALTER TABLE themes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE seo_metadata ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cms_pages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cms_sections ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cms_dynamic_blocks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE hero_campaigns ENABLE ROW LEVEL SECURITY;
+ALTER TABLE hero_slides ENABLE ROW LEVEL SECURITY;
+ALTER TABLE navigation_menus ENABLE ROW LEVEL SECURITY;
+ALTER TABLE navigation_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE forms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE form_fields ENABLE ROW LEVEL SECURITY;
 ALTER TABLE form_submissions ENABLE ROW LEVEL SECURITY;
 
--- Security Rule: Guests can submit form payloads; only authenticated staff can read responses
+-- ============================================================================
+-- PHASE F: POLICIES
+-- ============================================================================
+
+-- 1. themes policies
+DROP POLICY IF EXISTS "Public read for active tenant themes" ON themes;
+CREATE POLICY "Public read for active tenant themes"
+ON themes FOR SELECT
+TO anon, authenticated
+USING (
+    deleted_at IS NULL 
+    AND tenant_id IN (
+        SELECT id FROM tenants WHERE status = 'active' AND deleted_at IS NULL
+    )
+);
+
+DROP POLICY IF EXISTS "Staff can manage themes" ON themes;
+CREATE POLICY "Staff can manage themes"
+ON themes FOR ALL
+TO authenticated
+USING (
+    tenant_id IN (
+        SELECT tm.tenant_id 
+        FROM tenant_members tm 
+        WHERE tm.user_id = auth.uid() 
+          AND tm.role IN ('owner', 'general_manager', 'content_editor')
+          AND tm.is_active = true
+    )
+);
+
+-- 2. seo_metadata policies
+DROP POLICY IF EXISTS "Public read for active tenant SEO metadata" ON seo_metadata;
+CREATE POLICY "Public read for active tenant SEO metadata"
+ON seo_metadata FOR SELECT
+TO anon, authenticated
+USING (
+    tenant_id IN (
+        SELECT id FROM tenants WHERE status = 'active' AND deleted_at IS NULL
+    )
+);
+
+DROP POLICY IF EXISTS "Staff can manage SEO metadata" ON seo_metadata;
+CREATE POLICY "Staff can manage SEO metadata"
+ON seo_metadata FOR ALL
+TO authenticated
+USING (
+    tenant_id IN (
+        SELECT tm.tenant_id 
+        FROM tenant_members tm 
+        WHERE tm.user_id = auth.uid() 
+          AND tm.role IN ('owner', 'general_manager', 'content_editor')
+          AND tm.is_active = true
+    )
+);
+
+-- 3. cms_pages policies
+DROP POLICY IF EXISTS "Public read for published CMS pages" ON cms_pages;
+CREATE POLICY "Public read for published CMS pages"
+ON cms_pages FOR SELECT
+TO anon, authenticated
+USING (
+    deleted_at IS NULL 
+    AND status = 'published' 
+    AND tenant_id IN (
+        SELECT id FROM tenants WHERE status = 'active' AND deleted_at IS NULL
+    )
+);
+
+DROP POLICY IF EXISTS "Staff can manage CMS pages" ON cms_pages;
+CREATE POLICY "Staff can manage CMS pages"
+ON cms_pages FOR ALL
+TO authenticated
+USING (
+    tenant_id IN (
+        SELECT tm.tenant_id 
+        FROM tenant_members tm 
+        WHERE tm.user_id = auth.uid() 
+          AND tm.role IN ('owner', 'general_manager', 'content_editor')
+          AND tm.is_active = true
+    )
+);
+
+-- 4. cms_sections policies
+DROP POLICY IF EXISTS "Public read for visible sections on published pages" ON cms_sections;
+CREATE POLICY "Public read for visible sections on published pages"
+ON cms_sections FOR SELECT
+TO anon, authenticated
+USING (
+    deleted_at IS NULL 
+    AND is_visible = true 
+    AND page_id IN (
+        SELECT p.id 
+        FROM cms_pages p 
+        WHERE p.deleted_at IS NULL AND p.status = 'published'
+    )
+);
+
+DROP POLICY IF EXISTS "Staff can manage CMS sections" ON cms_sections;
+CREATE POLICY "Staff can manage CMS sections"
+ON cms_sections FOR ALL
+TO authenticated
+USING (
+    tenant_id IN (
+        SELECT tm.tenant_id 
+        FROM tenant_members tm 
+        WHERE tm.user_id = auth.uid() 
+          AND tm.role IN ('owner', 'general_manager', 'content_editor')
+          AND tm.is_active = true
+    )
+);
+
+-- 5. cms_dynamic_blocks policies
+DROP POLICY IF EXISTS "Public read for active dynamic blocks" ON cms_dynamic_blocks;
+CREATE POLICY "Public read for active dynamic blocks"
+ON cms_dynamic_blocks FOR SELECT
+TO anon, authenticated
+USING (
+    deleted_at IS NULL 
+    AND is_active = true 
+    AND tenant_id IN (
+        SELECT id FROM tenants WHERE status = 'active' AND deleted_at IS NULL
+    )
+);
+
+DROP POLICY IF EXISTS "Staff can manage dynamic blocks" ON cms_dynamic_blocks;
+CREATE POLICY "Staff can manage dynamic blocks"
+ON cms_dynamic_blocks FOR ALL
+TO authenticated
+USING (
+    tenant_id IN (
+        SELECT tm.tenant_id 
+        FROM tenant_members tm 
+        WHERE tm.user_id = auth.uid() 
+          AND tm.role IN ('owner', 'general_manager', 'content_editor')
+          AND tm.is_active = true
+    )
+);
+
+-- 6. hero_campaigns policies
+DROP POLICY IF EXISTS "Public read for active hero campaigns" ON hero_campaigns;
+CREATE POLICY "Public read for active hero campaigns"
+ON hero_campaigns FOR SELECT
+TO anon, authenticated
+USING (
+    deleted_at IS NULL 
+    AND is_active = true 
+    AND tenant_id IN (
+        SELECT id FROM tenants WHERE status = 'active' AND deleted_at IS NULL
+    )
+);
+
+DROP POLICY IF EXISTS "Staff can manage hero campaigns" ON hero_campaigns;
+CREATE POLICY "Staff can manage hero campaigns"
+ON hero_campaigns FOR ALL
+TO authenticated
+USING (
+    tenant_id IN (
+        SELECT tm.tenant_id 
+        FROM tenant_members tm 
+        WHERE tm.user_id = auth.uid() 
+          AND tm.role IN ('owner', 'general_manager', 'content_editor')
+          AND tm.is_active = true
+    )
+);
+
+-- 7. hero_slides policies
+DROP POLICY IF EXISTS "Public read for active hero slides" ON hero_slides;
+CREATE POLICY "Public read for active hero slides"
+ON hero_slides FOR SELECT
+TO anon, authenticated
+USING (
+    is_active = true 
+    AND hero_campaign_id IN (
+        SELECT hc.id 
+        FROM hero_campaigns hc 
+        WHERE hc.deleted_at IS NULL AND hc.is_active = true
+    )
+);
+
+DROP POLICY IF EXISTS "Staff can manage hero slides" ON hero_slides;
+CREATE POLICY "Staff can manage hero slides"
+ON hero_slides FOR ALL
+TO authenticated
+USING (
+    tenant_id IN (
+        SELECT tm.tenant_id 
+        FROM tenant_members tm 
+        WHERE tm.user_id = auth.uid() 
+          AND tm.role IN ('owner', 'general_manager', 'content_editor')
+          AND tm.is_active = true
+    )
+);
+
+-- 8. navigation_menus policies
+DROP POLICY IF EXISTS "Public read for active navigation menus" ON navigation_menus;
+CREATE POLICY "Public read for active navigation menus"
+ON navigation_menus FOR SELECT
+TO anon, authenticated
+USING (
+    is_active = true 
+    AND tenant_id IN (
+        SELECT id FROM tenants WHERE status = 'active' AND deleted_at IS NULL
+    )
+);
+
+DROP POLICY IF EXISTS "Staff can manage navigation menus" ON navigation_menus;
+CREATE POLICY "Staff can manage navigation menus"
+ON navigation_menus FOR ALL
+TO authenticated
+USING (
+    tenant_id IN (
+        SELECT tm.tenant_id 
+        FROM tenant_members tm 
+        WHERE tm.user_id = auth.uid() 
+          AND tm.role IN ('owner', 'general_manager', 'content_editor')
+          AND tm.is_active = true
+    )
+);
+
+-- 9. navigation_items policies
+DROP POLICY IF EXISTS "Public read for visible navigation items" ON navigation_items;
+CREATE POLICY "Public read for visible navigation items"
+ON navigation_items FOR SELECT
+TO anon, authenticated
+USING (
+    is_visible = true 
+    AND menu_id IN (
+        SELECT nm.id 
+        FROM navigation_menus nm 
+        WHERE nm.is_active = true
+    )
+);
+
+DROP POLICY IF EXISTS "Staff can manage navigation items" ON navigation_items;
+CREATE POLICY "Staff can manage navigation items"
+ON navigation_items FOR ALL
+TO authenticated
+USING (
+    tenant_id IN (
+        SELECT tm.tenant_id 
+        FROM tenant_members tm 
+        WHERE tm.user_id = auth.uid() 
+          AND tm.role IN ('owner', 'general_manager', 'content_editor')
+          AND tm.is_active = true
+    )
+);
+
+-- 10. forms policies
+DROP POLICY IF EXISTS "Public read for active forms" ON forms;
+CREATE POLICY "Public read for active forms"
+ON forms FOR SELECT
+TO anon, authenticated
+USING (
+    deleted_at IS NULL 
+    AND is_active = true 
+    AND tenant_id IN (
+        SELECT id FROM tenants WHERE status = 'active' AND deleted_at IS NULL
+    )
+);
+
+DROP POLICY IF EXISTS "Staff can manage forms" ON forms;
+CREATE POLICY "Staff can manage forms"
+ON forms FOR ALL
+TO authenticated
+USING (
+    tenant_id IN (
+        SELECT tm.tenant_id 
+        FROM tenant_members tm 
+        WHERE tm.user_id = auth.uid() 
+          AND tm.role IN ('owner', 'general_manager', 'content_editor')
+          AND tm.is_active = true
+    )
+);
+
+-- 11. form_fields policies
+DROP POLICY IF EXISTS "Public read for fields of active forms" ON form_fields;
+CREATE POLICY "Public read for fields of active forms"
+ON form_fields FOR SELECT
+TO anon, authenticated
+USING (
+    form_id IN (
+        SELECT f.id 
+        FROM forms f 
+        WHERE f.deleted_at IS NULL AND f.is_active = true
+    )
+);
+
+DROP POLICY IF EXISTS "Staff can manage form fields" ON form_fields;
+CREATE POLICY "Staff can manage form fields"
+ON form_fields FOR ALL
+TO authenticated
+USING (
+    tenant_id IN (
+        SELECT tm.tenant_id 
+        FROM tenant_members tm 
+        WHERE tm.user_id = auth.uid() 
+          AND tm.role IN ('owner', 'general_manager', 'content_editor')
+          AND tm.is_active = true
+    )
+);
+
+-- 12. form_submissions policies
+DROP POLICY IF EXISTS "Public guests can submit forms" ON form_submissions;
 CREATE POLICY "Public guests can submit forms"
 ON form_submissions FOR INSERT
 TO anon, authenticated
@@ -800,6 +786,7 @@ WITH CHECK (
     )
 );
 
+DROP POLICY IF EXISTS "Staff can view and manage form submissions" ON form_submissions;
 CREATE POLICY "Staff can view and manage form submissions"
 ON form_submissions FOR ALL
 TO authenticated
@@ -812,6 +799,54 @@ USING (
           AND tm.is_active = true
     )
 );
+
+-- ============================================================================
+-- PHASE G: COMMENTS
+-- ============================================================================
+
+-- themes comments
+COMMENT ON TABLE themes IS 'Database-driven CSS variable token sets for real-time white-label branding.';
+COMMENT ON COLUMN themes.color_tokens IS 'JSON map of HSL/Hex color tokens (primary, secondary, gold accents, dark surfaces).';
+COMMENT ON COLUMN themes.is_active IS 'Flag indicating active theme currently rendered on public website.';
+
+-- seo_metadata comments
+COMMENT ON TABLE seo_metadata IS 'Search engine optimization, social cards, and Schema.org structured data.';
+COMMENT ON COLUMN seo_metadata.structured_data_json IS 'Schema.org JSON-LD payload (FoodEstablishment, LocalBusiness, Event).';
+
+-- cms_pages comments
+COMMENT ON TABLE cms_pages IS 'Dynamic page registry supporting scheduling and multi-page site architectures.';
+COMMENT ON COLUMN cms_pages.slug IS 'Route slug (e.g. "/" for home, "/weddings", "/tasting-room").';
+COMMENT ON COLUMN cms_pages.is_home IS 'Flag identifying the root homepage of the tenant domain.';
+
+-- cms_sections comments
+COMMENT ON TABLE cms_sections IS 'Composable visual layout slices (hero, culinary, reviews, form) per page.';
+COMMENT ON COLUMN cms_sections.section_type IS 'Component key matching registered UI components (e.g. hero_stack, culinary_grid).';
+COMMENT ON COLUMN cms_sections.content_payload IS 'JSON data payload containing text copy, badges, and layout parameters.';
+
+-- cms_dynamic_blocks comments
+COMMENT ON TABLE cms_dynamic_blocks IS 'Global reusable blocks embedded across multiple pages without duplication.';
+
+-- hero_campaigns comments
+COMMENT ON TABLE hero_campaigns IS 'Hero presentation campaigns supporting multi-slide covers and scheduling.';
+COMMENT ON COLUMN hero_campaigns.priority IS 'Higher priority score overrides default hero when active.';
+
+-- hero_slides comments
+COMMENT ON TABLE hero_slides IS 'Individual media cards, 4K vertical videos, and CTAs in 3D stacked coverflow.';
+
+-- navigation_menus comments
+COMMENT ON TABLE navigation_menus IS 'Navigation containers assigned to layout zones (header, footers, mobile drawer).';
+
+-- navigation_items comments
+COMMENT ON TABLE navigation_items IS 'Hierarchical navigation items with self-referencing parent_id for dropdown menus.';
+
+-- forms comments
+COMMENT ON TABLE forms IS 'Dynamic form definitions supporting inquiries, tastings, quotes, and careers.';
+
+-- form_fields comments
+COMMENT ON TABLE form_fields IS 'Dynamic field schema, validation rules, and layout options per form.';
+
+-- form_submissions comments
+COMMENT ON TABLE form_submissions IS 'Raw JSON submission payloads with UTM campaign tracking and CRM conversion hooks.';
 
 -- ============================================================================
 -- END OF MIGRATION 0007

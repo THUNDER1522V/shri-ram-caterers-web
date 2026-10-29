@@ -10,6 +10,11 @@
 -- tenancy context resolvers, slug generators, and cryptographic helpers utilized
 -- across all 20 bounded domains of the 68-table HospiOS architecture.
 --
+-- SECURITY & COMPATIBILITY:
+-- All functions are explicitly configured with an immutable SET search_path to
+-- eliminate search_path escalation vulnerabilities and comply with Supabase Cloud
+-- security lint standards.
+--
 -- DO NOT CREATE TABLES IN THIS MIGRATION.
 -- DO NOT GENERATE RLS POLICIES IN THIS MIGRATION.
 -- ============================================================================
@@ -25,7 +30,8 @@ BEGIN
     NEW.updated_at = NOW();
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql
+SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION update_updated_at_column() IS 
 'Trigger handler that updates the updated_at timestamp column to current time on record mutation.';
@@ -38,7 +44,7 @@ COMMENT ON FUNCTION update_updated_at_column() IS
 --   2. Supabase Auth JWT claims (request.jwt.claims -> app_metadata -> tenant_id)
 --
 -- Returns NULL if unauthenticated or not scoped to a specific tenant workspace.
--- Marked STABLE and SECURITY DEFINER for sub-millisecond, secure evaluation.
+-- Marked STABLE and SECURITY DEFINER with fixed search_path for sub-millisecond, secure evaluation.
 CREATE OR REPLACE FUNCTION current_tenant_id()
 RETURNS UUID AS $$
 DECLARE
@@ -62,7 +68,8 @@ BEGIN
 
     RETURN NULL;
 END;
-$$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+$$ LANGUAGE plpgsql STABLE SECURITY DEFINER
+SET search_path = public, extensions, pg_temp;
 
 COMMENT ON FUNCTION current_tenant_id() IS 
 'Resolves the active tenant UUID from request session settings or JWT app_metadata claims.';
@@ -93,7 +100,8 @@ BEGIN
 EXCEPTION WHEN OTHERS THEN
     RETURN NULL;
 END;
-$$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+$$ LANGUAGE plpgsql STABLE SECURITY DEFINER
+SET search_path = public, extensions, pg_temp;
 
 COMMENT ON FUNCTION current_user_id() IS 
 'Extracts authenticated Supabase user UUID (sub claim) from JWT or returns NULL for guests.';
@@ -119,7 +127,7 @@ BEGIN
     END IF;
 
     -- 1. Remove diacritical marks/accents
-    _clean_text := unaccent(source_text);
+    _clean_text := extensions.unaccent('extensions.unaccent', source_text);
     -- 2. Lowercase
     _clean_text := LOWER(_clean_text);
     -- 3. Replace non-alphanumeric characters with hyphens
@@ -131,7 +139,8 @@ BEGIN
 
     RETURN _clean_text;
 END;
-$$ LANGUAGE plpgsql IMMUTABLE STRICT;
+$$ LANGUAGE plpgsql STABLE STRICT
+SET search_path = public, extensions, pg_temp;
 
 COMMENT ON FUNCTION generate_slug(TEXT) IS 
 'Transforms any string into a clean, unaccented, lowercase URL-safe slug.';
@@ -145,7 +154,8 @@ RETURNS BOOLEAN AS $$
 BEGIN
     RETURN deleted_at IS NULL;
 END;
-$$ LANGUAGE plpgsql IMMUTABLE;
+$$ LANGUAGE plpgsql IMMUTABLE
+SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION is_not_deleted(TIMESTAMPTZ) IS 
 'Returns true if the record has not been soft-deleted (deleted_at IS NULL).';
@@ -161,9 +171,10 @@ BEGIN
     IF raw_key IS NULL OR raw_key = '' THEN
         RETURN NULL;
     END IF;
-    RETURN encode(digest(raw_key, 'sha256'), 'hex');
+    RETURN encode(extensions.digest(raw_key, 'sha256'), 'hex');
 END;
-$$ LANGUAGE plpgsql IMMUTABLE STRICT;
+$$ LANGUAGE plpgsql IMMUTABLE STRICT
+SET search_path = public, extensions, pg_temp;
 
 COMMENT ON FUNCTION hash_api_key(TEXT) IS 
 'Generates a SHA-256 cryptographic hex digest for API key verification.';
@@ -191,7 +202,8 @@ BEGIN
 EXCEPTION WHEN OTHERS THEN
     RETURN NULL;
 END;
-$$ LANGUAGE plpgsql STABLE;
+$$ LANGUAGE plpgsql STABLE
+SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION get_client_ip() IS 
 'Extracts client IP address from Vercel/Cloudflare headers for audit trails.';
